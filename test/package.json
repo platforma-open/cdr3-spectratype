@@ -1,0 +1,20 @@
+{
+  "name": "@platforma-open/milaboratories.cdr3-spectratype.test",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Block tests",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --passWithNoTests"
+  },
+  "files": [],
+  "keywords": [],
+  "dependencies": {
+    "this-block": "workspace:@platforma-open/milaboratories.cdr3-spectratype@*"
+  },
+  "devDependencies": {
+    "@platforma-sdk/test": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

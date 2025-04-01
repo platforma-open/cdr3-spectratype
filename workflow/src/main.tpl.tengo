@@ -1,0 +1,142 @@
+// "hello world"
+wf := import("@platforma-sdk/workflow-tengo:workflow")
+exec := import("@platforma-sdk/workflow-tengo:exec")
+assets:= import("@platforma-sdk/workflow-tengo:assets")
+xsv := import("@platforma-sdk/workflow-tengo:pframes.xsv")
+ll := import("@platforma-sdk/workflow-tengo:ll")
+pframes := import("@platforma-sdk/workflow-tengo:pframes")
+
+spectratype := assets.importSoftware("@platforma-open/milaboratories.cdr3-spectratype.software:main")
+
+wf.prepare(func(args) {
+
+	clonotypingRunId := args.clonotypingRunId
+	scClonotypeChain := args.scClonotypeChain
+
+	query := func(label, readCount) {
+
+		// return {
+		// 	type: "Annotation",
+		// 	annotation: "pl7.app/label",
+		// 	value: label
+		// }
+
+		r := {
+			type: "And",
+			operands:  [
+				{
+					type: "AnnotationPattern",
+					annotation: "pl7.app/label",
+					pattern: label
+				} , {
+					type: "Domain",
+					domain: {
+						"pl7.app/vdj/clonotypingRunId": clonotypingRunId
+					},
+					domainExactMatch: false
+				}
+			]
+		}
+
+		if readCount == false {
+			r.operands[1].domain["pl7.app/vdj/scClonotypeChain"] = scClonotypeChain
+		}
+
+		return r
+	}
+	// r := {
+	// 	cdr3Length: wf.resolve(args.cdr3LengthRef),
+	// 	vGene: wf.resolve(args.vGeneRef)
+	// }
+	// if !is_undefined(args.weightRef) {
+	// 	r["weight"] = wf.resolve(args.weightRef)
+	// }
+	// return r 
+	return  { 
+		cdr3Length: wf.resolve(args.cdr3LengthRef),
+		vGene: wf.query(query("Best V gene", false), { single: true }),
+		weight: wf.query(query("Number Of Reads", true), { single: true })
+	}
+})
+
+wf.body(func(args) {
+
+	cdr3Length := args.cdr3Length
+	vGene := args.vGene
+	weight := args.weight
+	ll.print("AAAAAAAA b", vGene)
+	ll.print("AAAAAAAA w", weight)
+	
+	cdr3Length.spec.annotations["pl7.app/label"] = "cdr3Length"
+	vGene.spec.annotations["pl7.app/label"] = "vGene"
+	if !is_undefined(weight) {
+		weight.spec.annotations["pl7.app/label"] = "weight"
+	}
+
+	columns := [cdr3Length, vGene]	
+	if !is_undefined(weight) {
+		columns += [weight]
+	}
+	tsv := xsv.exportFrame(columns, "tsv", {})
+
+
+	runSpectratype := exec.builder().
+		software(spectratype).
+		addFile("input.tsv", tsv).
+		saveStdoutContent().
+		saveFile("result.tsv").
+		run()
+
+	spectratype := xsv.importFile(
+		runSpectratype.getFile("result.tsv"),
+		"tsv",
+		{
+			axes: [{
+				column: "Sample",
+				spec: weight.spec.axesSpec[0]
+			}, {
+				column: "vGene",
+				spec: {
+					name: "pl7.app/vdj/geneHit",
+					type: "String",
+					annotations: {
+						"pl7.app/label": vGene.spec.annotations["pl7.app/label"]
+					}
+				}
+			}, {
+				column: "cdr3Length",
+				spec: {
+					name: "pl7.app/vdj/cdr3Length",
+					type: "Int",
+					annotations: {
+						"pl7.app/label": cdr3Length.spec.annotations["pl7.app/label"]
+					}
+				}
+			}], 
+			
+			columns: [{
+				column: "weight",
+				spec: {
+					name: "pl7.app/vdj/cdr3Spectratype",
+					valueType: "Float",
+					annotations: {
+						"pl7.app/label": "CDR3 spectratype"
+					}
+				}
+			}]
+		})
+	
+	return {
+		outputs: {
+			spectratype: pframes.exportFrame(spectratype)
+		},
+
+		exports: {
+			spectratype: {
+				data: spectratype["weight.data"],
+				spec: spectratype["weight.spec"]
+			}
+		}
+	}
+})
+
