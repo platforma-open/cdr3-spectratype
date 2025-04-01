@@ -44,45 +44,42 @@ wf.prepare(func(args) {
 
 		return r
 	}
-	// r := {
-	// 	cdr3Length: wf.resolve(args.cdr3LengthRef),
-	// 	vGene: wf.resolve(args.vGeneRef)
-	// }
-	// if !is_undefined(args.weightRef) {
-	// 	r["weight"] = wf.resolve(args.weightRef)
-	// }
-	// return r 
+
 	return  { 
-		cdr3Length: wf.resolve(args.cdr3LengthRef),
-		vGene: wf.query(query("Best V gene", false), { single: true }),
-		weight: wf.query(query("Number Of Reads", true), { single: true })
+		cdr3LengthCol: wf.resolve(args.cdr3LengthRef),
+		vGeneCol: wf.query(query("Best V gene", false), { single: true }),
+		weightCol: wf.query(query("Number Of Reads", true), { single: true })
 	}
 })
 
 wf.body(func(args) {
 
-	cdr3Length := args.cdr3Length
-	vGene := args.vGene
-	weight := args.weight
-	ll.print("AAAAAAAA b", vGene)
-	ll.print("AAAAAAAA w", weight)
+	cdr3LengthCol := args.cdr3LengthCol
+	vGeneCol := args.vGeneCol
+	weightCol := args.weightCol
 	
-	cdr3Length.spec.annotations["pl7.app/label"] = "cdr3Length"
-	vGene.spec.annotations["pl7.app/label"] = "vGene"
-	if !is_undefined(weight) {
-		weight.spec.annotations["pl7.app/label"] = "weight"
-	}
+	cdr3LengthLabel := cdr3LengthCol.spec.annotations["pl7.app/label"]
+	vGeneLabel := vGeneCol.spec.annotations["pl7.app/label"]
+	weightLabel := weightCol.spec.annotations["pl7.app/label"]
 
-	columns := [cdr3Length, vGene]	
-	if !is_undefined(weight) {
-		columns += [weight]
-	}
+	cdr3LengthCol.spec.annotations["pl7.app/label"] = "cdr3Length"
+	vGeneCol.spec.annotations["pl7.app/label"] = "vGene"
+	weightCol.spec.annotations["pl7.app/label"] = "weight"
+
+	columns := [cdr3LengthCol, vGeneCol, weightCol]
+	
 	tsv := xsv.exportFrame(columns, "tsv", {})
 
 
 	runSpectratype := exec.builder().
 		software(spectratype).
-		addFile("input.tsv", tsv).
+		addFile("input.tsv", tsv)
+		
+	if args.weight == "none" {
+		runSpectratype = runSpectratype.arg("--unweighted")
+	}
+
+	runSpectratype = runSpectratype.
 		saveStdoutContent().
 		saveFile("result.tsv").
 		run()
@@ -93,15 +90,16 @@ wf.body(func(args) {
 		{
 			axes: [{
 				column: "Sample",
-				spec: weight.spec.axesSpec[0]
+				spec: weightCol.spec.axesSpec[0]
 			}, {
 				column: "vGene",
 				spec: {
 					name: "pl7.app/vdj/geneHit",
 					type: "String",
 					annotations: {
-						"pl7.app/label": vGene.spec.annotations["pl7.app/label"]
-					}
+						"pl7.app/label": vGeneLabel
+					},
+					domain: vGeneCol.spec.domain
 				}
 			}, {
 				column: "cdr3Length",
@@ -109,8 +107,9 @@ wf.body(func(args) {
 					name: "pl7.app/vdj/cdr3Length",
 					type: "Int",
 					annotations: {
-						"pl7.app/label": cdr3Length.spec.annotations["pl7.app/label"]
-					}
+						"pl7.app/label": cdr3LengthLabel
+					},
+					domain: cdr3LengthCol.spec.domain
 				}
 			}], 
 			
@@ -120,10 +119,13 @@ wf.body(func(args) {
 					name: "pl7.app/vdj/cdr3Spectratype",
 					valueType: "Float",
 					annotations: {
-						"pl7.app/label": "CDR3 spectratype"
+						"pl7.app/label": "CDR3 Spectratype"
 					}
 				}
-			}]
+			}],
+
+			storageFormat: "Binary",
+			partitionKeyLength: 1
 		})
 	
 	return {

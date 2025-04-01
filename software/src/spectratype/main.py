@@ -6,9 +6,8 @@ import argparse
 parser = argparse.ArgumentParser(
     description="Calculate CDR3 spectratype"
 )
-parser.add_argument("--unweighted", help="Unweighted")
+parser.add_argument("--unweighted", action="store_true", help="Unweighted")
 args = parser.parse_args()
-
 
 # expected columns:
 #
@@ -17,8 +16,6 @@ args = parser.parse_args()
 input_file = "input.tsv"
 
 data = pd.read_csv(input_file, sep="\t")
-
-data = data.drop(columns=["weight"])
 
 aggColumns = ["cdr3Length"]
 
@@ -33,8 +30,4 @@ if "weight" in data.columns and not args.unweighted:
 else:
     agg = data.groupby(aggColumns).size().reset_index(name='weight')
 
-
 agg.to_csv("result.tsv", sep="\t", index=False)
-
-print(agg)
-# exit(1)

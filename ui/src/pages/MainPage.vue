@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import type { GraphMakerProps } from '@milaboratories/graph-maker';
-import { GraphMaker } from '@milaboratories/graph-maker';
 import '@milaboratories/graph-maker/styles';
 import { plRefsEqual, type PlRef } from '@platforma-sdk/model';
-import { PlDropdownRef } from '@platforma-sdk/ui-vue';
-// import { ref } from 'vue';
+import type { PlDataTableSettings } from '@platforma-sdk/ui-vue';
+import { PlAgDataTable, PlAgDataTableToolsPanel, PlBlockPage, PlBtnGhost, PlBtnGroup, PlDropdownRef, PlEditableTitle, PlMaskIcon24, PlSlideModal } from '@platforma-sdk/ui-vue';
+import { computed, ref } from 'vue';
 import { useApp } from '../app';
 
 const app = useApp();
 
-// const settingsOpen = ref(false);
+const settingsOpen = ref(app.model.args.cdr3LengthRef === undefined);
 
 function setInput(inputRef?: PlRef) {
   if (!inputRef) return;
@@ -25,69 +24,24 @@ function setInput(inputRef?: PlRef) {
   }
 }
 
-const defaultOptions: GraphMakerProps['defaultOptions'] = [
-  {
-    inputName: 'valueSize',
-    selectedSource: {
-      kind: 'PColumn',
-      valueType: 'Float',
-      name: 'pl7.app/vdj/cdr3Spectratype',
-      axesSpec: [],
-    },
-  },
-  {
-    inputName: 'valueColor',
-    selectedSource: {
-      kind: 'PColumn',
-      valueType: 'Float',
-      name: 'pl7.app/vdj/cdr3Spectratype',
-      axesSpec: [],
-    },
-  },
-  {
-    inputName: 'x',
-    selectedSource: {
-      type: 'String',
-      name: 'pl7.app/vdj/geneHit',
-    },
-  },
-  {
-    inputName: 'y',
-    selectedSource: {
-      type: 'Int',
-      name: 'pl7.app/vdj/cdr3Length',
-    },
-  },
-  {
-    inputName: 'tabBy',
-    selectedSource: {
-      type: 'String',
-      name: 'pl7.app/sampleId',
-    },
-  },
-];
+const tableSettings = computed<PlDataTableSettings>(() => ({
+  sourceType: 'ptable',
+  pTable: app.model.outputs.pt?.table,
+  sheets: app.model.outputs.pt?.sheets,
+}));
+
+const weightOptions = [{
+  value: 'read',
+  label: 'Reads',
+}, {
+  value: 'none',
+  label: 'None',
+}];
 
 </script>
 
 <template>
-  <GraphMaker
-    v-model="app.model.ui.graphState"
-    chart-type="bubble"
-    :p-frame="app.model.outputs.pf"
-    :default-options="defaultOptions"
-  >
-    <template #titleLineSlot>
-      <PlDropdownRef
-        v-model="app.model.args.cdr3LengthRef"
-        :options="app.model.outputs.cdr3Options"
-        label="CDR3 length"
-        :style="{ width: '300px' }"
-        @update:model-value="setInput"
-      />
-    </template>
-  </GraphMaker>
-
-  <!-- <PlBlockPage>
+  <PlBlockPage>
     <template #title>
       <PlEditableTitle v-model="app.model.ui.blockTitle" max-width="600px" :max-length="40" />
     </template>
@@ -101,13 +55,20 @@ const defaultOptions: GraphMakerProps['defaultOptions'] = [
         </template>
       </PlBtnGhost>
     </template>
+    <PlAgDataTable v-model="app.model.ui.tableState" :settings="tableSettings" show-export-button />
   </PlBlockPage>
 
   <PlSlideModal v-model="settingsOpen">
-    <template #header>Settings</template>
+    <template #title>Settings</template>
 
-    <PlDropdownRef v-model="app.model.args.cdr3LengthRef" :options="app.model.outputs.cdr3Options" @update:model-value="setInput"/>
-    <PlDropdownRef v-model="app.model.args.weightRef" :options="app.model.outputs.weightOptions" />
-    <PlDropdownRef v-model="app.model.args.vGeneRef" :options="app.model.outputs.vGeneOptions" />
-  </PlSlideModal> -->
+    <PlDropdownRef
+      v-model="app.model.args.cdr3LengthRef"
+      :options="app.model.outputs.cdr3Options"
+      label="CDR3 length"
+      required
+      @update:model-value="setInput"
+    />
+
+    <PlBtnGroup v-model="app.model.args.weight" :options="weightOptions" label="Clonotype weight"/>
+  </PlSlideModal>
 </template>
