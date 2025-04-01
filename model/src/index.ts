@@ -1,31 +1,47 @@
 import type { GraphMakerState } from '@milaboratories/graph-maker';
-import type { InferOutputsType, PlRef } from '@platforma-sdk/model';
-import { BlockModel, createPFrameForGraphs, isPColumnSpec } from '@platforma-sdk/model';
+import type { InferOutputsType, PlDataTableState, PlRef } from '@platforma-sdk/model';
+import { BlockModel, createPFrameForGraphs, createPlDataTable, createPlDataTableSheet, getUniquePartitionKeys, isPColumnSpec } from '@platforma-sdk/model';
 
 export type BlockArgs = {
   cdr3LengthRef?: PlRef;
-  vGeneRef?: PlRef;
-  weightRef?: PlRef;
-  clonotypingRunId?: string;
-  scClonotypeChain?: string;
+  weight: 'read' | 'none';
+  clonotypingRunId?: string; // TODO: remove this
+  scClonotypeChain?: string; // TODO: remove this
 };
 
 export type UiState = {
   blockTitle: string;
-  graphState: GraphMakerState;
+  bubblePlotState: GraphMakerState;
+  stackedBarPlotState: GraphMakerState;
+  tableState?: PlDataTableState;
 };
 
 export const model = BlockModel.create()
 
-  .withArgs<BlockArgs>({})
+  .withArgs<BlockArgs>({
+    weight: 'read',
+  })
 
   .withUiState<UiState>({
     blockTitle: 'CDR3 Spectratype',
-    graphState: {
+    bubblePlotState: {
       title: 'CDR3 Spectratype',
       template: 'bubble',
     },
+    stackedBarPlotState: {
+      title: 'CDR3 Spectratype',
+      template: 'stackedBar',
+    },
+    tableState: {
+      gridState: {},
+      pTableParams: {
+        sorting: [],
+        filters: [],
+      },
+    },
   })
+
+  .argsValid((ctx) => ctx.args.cdr3LengthRef !== undefined)
 
   .output('cdr3Options', (ctx) =>
     ctx.resultPool.getOptions((c) =>
@@ -34,29 +50,22 @@ export const model = BlockModel.create()
       && c.domain?.['pl7.app/vdj/feature'] === 'CDR3',
     ))
 
-  .output('weightOptions', (ctx) => {
-    const cdr3LengthRef = ctx.args.cdr3LengthRef;
-    if (cdr3LengthRef === undefined)
+  .output('pt', (ctx) => {
+    const pCols = ctx.outputs?.resolve('spectratype')?.getPColumns();
+    if (pCols === undefined) {
       return undefined;
-    return ctx.resultPool.getOptions((c) =>
-      isPColumnSpec(c)
-      && (c.name === 'pl7.app/vdj/readCount' || c.name === 'pl7.app/vdj/umiCount')
-      && c.domain?.['pl7.app/vdj/clonotypingRunId']
-      === ctx.resultPool.getPColumnSpecByRef(cdr3LengthRef)?.domain?.['pl7.app/vdj/clonotypingRunId'],
-    );
-  })
+    }
 
-  .output('vGeneOptions', (ctx) => {
-    const cdr3LengthRef = ctx.args.cdr3LengthRef;
-    if (cdr3LengthRef === undefined)
-      return undefined;
-    return ctx.resultPool.getOptions((c) =>
-      isPColumnSpec(c)
-      && c.name === 'pl7.app/vdj/geneHit'
-      && c.domain?.['pl7.app/vdj/reference'] === 'VGene'
-      && c.domain?.['pl7.app/vdj/clonotypingRunId']
-      === ctx.resultPool.getPColumnSpecByRef(cdr3LengthRef)?.domain?.['pl7.app/vdj/clonotypingRunId'],
-    );
+    const anchor = pCols[0];
+    if (!anchor) return undefined;
+
+    const r = getUniquePartitionKeys(anchor.data);
+    if (!r) return undefined;
+
+    return {
+      table: createPlDataTable(ctx, pCols, ctx.uiState?.tableState),
+      sheets: r.map((values, i) => createPlDataTableSheet(ctx, anchor.spec.axesSpec[i], values)),
+    };
   })
 
   .output('pf', (ctx) => {
@@ -72,7 +81,11 @@ export const model = BlockModel.create()
 
   .title((ctx) => ctx.uiState?.blockTitle ?? 'CDR3 Spectratype')
 
-  .sections((_ctx) => [{ type: 'link', href: '/', label: 'Main' }])
+  .sections((_) => [
+    { type: 'link', href: '/', label: 'Table' },
+    { type: 'link', href: '/bubblePlot', label: 'Bubble Plot' },
+    { type: 'link', href: '/stackedBarPlot', label: 'Bar Plot' },
+  ])
 
   .done();
 
