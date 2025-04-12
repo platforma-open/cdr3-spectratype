@@ -8,136 +8,181 @@ pframes := import("@platforma-sdk/workflow-tengo:pframes")
 
 spectratype := assets.importSoftware("@platforma-open/milaboratories.cdr3-spectratype.software:main")
 
-wf.prepare(func(args) {
-
-	clonotypingRunId := args.clonotypingRunId
-	scClonotypeChain := args.scClonotypeChain
-
-	query := func(label, readCount) {
-
-		// return {
-		// 	type: "Annotation",
-		// 	annotation: "pl7.app/label",
-		// 	value: label
-		// }
-
-		r := {
-			type: "And",
-			operands:  [
-				{
-					type: "AnnotationPattern",
-					annotation: "pl7.app/label",
-					pattern: label
-				} , {
-					type: "Domain",
-					domain: {
-						"pl7.app/vdj/clonotypingRunId": clonotypingRunId
-					},
-					domainExactMatch: false
-				}
-			]
-		}
-
-		if readCount == false {
-			r.operands[1].domain["pl7.app/vdj/scClonotypeChain"] = scClonotypeChain
-		}
-
-		return r
-	}
-
-	return  { 
-		cdr3LengthCol: wf.resolve(args.cdr3LengthRef),
-		vGeneCol: wf.query(query("Best V gene", false), { single: true }),
-		weightCol: wf.query(query("Number Of Reads", true), { single: true })
-	}
-})
-
-wf.body(func(args) {
-
-	cdr3LengthCol := args.cdr3LengthCol
-	vGeneCol := args.vGeneCol
-	weightCol := args.weightCol
+/**
+	Returns a spec for the given type of spectratype.
 	
-	cdr3LengthLabel := cdr3LengthCol.spec.annotations["pl7.app/label"]
-	vGeneLabel := vGeneCol.spec.annotations["pl7.app/label"]
-	weightLabel := weightCol.spec.annotations["pl7.app/label"]
-
-	cdr3LengthCol.spec.annotations["pl7.app/label"] = "cdr3Length"
-	vGeneCol.spec.annotations["pl7.app/label"] = "vGene"
-	weightCol.spec.annotations["pl7.app/label"] = "weight"
-
-	columns := [cdr3LengthCol, vGeneCol, weightCol]
+	Args:
+		type: The type of spectratype to return (cdr3 or v).
+		abundanceSpec: The spec for the abundance column.
+		vGeneSpec: The spec for the vGene column.
+		cdr3Spec: The spec for the cdr3Length column.
 	
-	tsv := xsv.exportFrame(columns, "tsv", {})
-
-
-	runSpectratype := exec.builder().
-		software(spectratype).
-		addFile("input.tsv", tsv)
-		
-	if args.weight == "none" {
-		runSpectratype = runSpectratype.arg("--unweighted")
+	Returns:
+		A spec for the given type of spectratype.
+*/
+getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
+	if type != "v" && type != "cdr3" {
+		ll.panic("Invalid type: " + type)
 	}
 
-	runSpectratype = runSpectratype.
-		saveStdoutContent().
-		saveFile("result.tsv").
-		run()
+	spectratypeType := "pl7.app/vdj/" + type + "Spectratype"
+	secondAxis := undefined
+	label := undefined
 
-	spectratype := xsv.importFile(
-		runSpectratype.getFile("result.tsv"),
-		"tsv",
-		{
-			axes: [{
+	if type == "v" {
+		label = "CDR3 V Spectratype"
+		secondAxis = {
+			column: "vGene",
+			spec: {
+				name: vGeneSpec.name,
+				type: "String",
+				annotations: {
+					"pl7.app/label": vGeneSpec.annotations["pl7.app/label"]
+				},
+				domain: vGeneSpec.domain
+			}
+		}
+	} else if type == "cdr3" {
+		label = "CDR3 Spectratype"
+		secondAxis = {
+			column: "CDR3",
+			spec: {
+				name: "pl7.app/vdj/cdr3",
+				type: "String",
+				annotations: {
+					"pl7.app/label": cdr3Spec.annotations["pl7.app/label"]
+				},
+				domain: cdr3Spec.domain
+			}
+		}
+	} else {
+		ll.panic("Invalid type: " + type)
+	}
+	return {
+		axes: [
+			{
 				column: "Sample",
-				spec: weightCol.spec.axesSpec[0]
-			}, {
-				column: "vGene",
-				spec: {
-					name: "pl7.app/vdj/geneHit",
-					type: "String",
-					annotations: {
-						"pl7.app/label": vGeneLabel
-					},
-					domain: vGeneCol.spec.domain
-				}
-			}, {
+				spec: abundanceSpec.axesSpec[0]
+			}, 
+			{
 				column: "cdr3Length",
 				spec: {
 					name: "pl7.app/vdj/cdr3Length",
 					type: "Int",
 					annotations: {
-						"pl7.app/label": cdr3LengthLabel
+						"pl7.app/label": cdr3Spec.annotations["pl7.app/label"] + " length"
 					},
-					domain: cdr3LengthCol.spec.domain
+					domain: cdr3Spec.domain
 				}
-			}], 
+			},
+			secondAxis
+			], 
 			
-			columns: [{
-				column: "weight",
+		columns: [
+			{
+				column: "sum",
 				spec: {
-					name: "pl7.app/vdj/cdr3Spectratype",
+					name: spectratypeType,
 					valueType: "Float",
+					domain: {
+						"pl7.app/vdj/cdr3Spectratype/type": "weighted",
+						"pl7.app/abundance/unit": abundanceSpec.annotations["pl7.app/abundance/unit"]
+					},
 					annotations: {
-						"pl7.app/label": "CDR3 Spectratype"
+						"pl7.app/label": label
+					}
+				}
+			},
+			{
+				column: "size",
+				spec: {
+					name: spectratypeType,
+					valueType: "Float",
+					domain: {
+						"pl7.app/vdj/cdr3Spectratype/type": "unweighted"
+					},
+					annotations: {
+						"pl7.app/label": label + " (unweighted)"
 					}
 				}
 			}],
 
-			storageFormat: "Binary",
-			partitionKeyLength: 1
-		})
-	
+		storageFormat: "Binary",
+		partitionKeyLength: 1
+	}
+}
+
+wf.prepare(func(args) {
+	bundleBuilder := wf.createPBundleBuilder()
+
+	bundleBuilder.addAnchor("main", args.cdr3Ref) // PlRef
+	bundleBuilder.addById(args.abundanceRef) // SUniversalPColumnId
+	bundleBuilder.addById(args.vGeneRef) // SUniversalPColumnId
+
+	return  { 
+		columns: bundleBuilder.build()
+	}
+})
+
+wf.body(func(args) {
+	columns := args.columns
+
+	cdr3LengthSpec := columns.getSpec(args.cdr3Ref)
+	abundanceSpec := columns.getSpec(args.abundanceRef)
+	vGeneSpec := columns.getSpec(args.vGeneRef)
+
+	table := columns.xsvTableBuilder()
+
+	table.setAxisHeader("pl7.app/sampleId", "Sample")
+	table.add(args.cdr3Ref, {header: "CDR3"})
+	table.add(args.abundanceRef, {header: "weight"})
+	table.add(args.vGeneRef, {header: "vGene"})
+	tsv := table.build("tsv")
+
+	runSpectratype := exec.builder().
+		software(spectratype).
+		addFile("input.tsv", tsv)
+		
+	if args.abundanceRef == "unweighted" {
+		runSpectratype = runSpectratype.arg("--unweighted")
+	}
+
+	runSpectratype = runSpectratype.
+		saveStdoutContent().
+		saveFile("vSpectratype.result.tsv").
+		saveFile("cdr3Spectratype.result.tsv").
+		run()
+
+	vSpectratype := xsv.importFile(
+		runSpectratype.getFile("vSpectratype.result.tsv"),
+		"tsv",
+		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec),
+		{splitDataAndSpec: true}
+	)
+
+	cdr3Spectratype := xsv.importFile(
+		runSpectratype.getFile("cdr3Spectratype.result.tsv"),
+		"tsv",
+		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec),
+		{splitDataAndSpec: true}
+	)
+
+	pf := pframes.pFrameBuilder()
+	for id, v in vSpectratype {
+		pf.add(id + "-v", v.spec, v.data)
+	}
+	for id, v in cdr3Spectratype {
+		pf.add(id + "-cdr3", v.spec, v.data)
+	}
+	pf = pf.build()
+
 	return {
 		outputs: {
-			spectratype: pframes.exportFrame(spectratype)
+			pf: pframes.exportFrame(pf)
 		},
 
 		exports: {
-			spectratype: {
-				data: spectratype["weight.data"],
-				spec: spectratype["weight.spec"]
-			}
+			pf: pf
 		}
 	}
 })
