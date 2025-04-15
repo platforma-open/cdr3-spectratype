@@ -148,7 +148,6 @@ wf.body(func(args) {
 	}
 
 	runSpectratype = runSpectratype.
-		saveStdoutContent().
 		saveFile("vSpectratype.result.tsv").
 		saveFile("cdr3Spectratype.result.tsv").
 		run()
