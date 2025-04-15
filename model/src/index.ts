@@ -40,7 +40,13 @@ export const model = BlockModel.create()
     },
   })
 
-  .argsValid((ctx) => ctx.args.cdr3Ref !== undefined)
+  .argsValid((ctx) => {
+    return [
+      ctx.args.cdr3Ref,
+      ctx.args.abundanceRef,
+      ctx.args.vGeneRef,
+    ].every((arg) => arg !== undefined);
+  })
 
   .output('cdr3Options', (ctx) =>
     ctx.resultPool.getOptions((c) =>
