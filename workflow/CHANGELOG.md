@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 2.0.2
+
+### Patch Changes
+
+- 764dc48: chore: update deps
+
 ## 2.0.1
 
 ### Patch Changes

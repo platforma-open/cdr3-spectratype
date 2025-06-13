@@ -1,5 +1,12 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 2.0.4
+
+### Patch Changes
+
+- Updated dependencies [764dc48]
+  - @platforma-open/milaboratories.cdr3-spectratype.workflow@2.0.2
+
 ## 2.0.3
 
 ### Patch Changes
