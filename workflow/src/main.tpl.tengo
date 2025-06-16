@@ -131,13 +131,13 @@ wf.body(func(args) {
 	abundanceSpec := columns.getSpec(args.abundanceRef)
 	vGeneSpec := columns.getSpec(args.vGeneRef)
 
-	table := columns.xsvTableBuilder()
+	table := pframes.tsvFileBuilder()
 
 	table.setAxisHeader("pl7.app/sampleId", "Sample")
-	table.add(args.cdr3Ref, {header: "CDR3"})
-	table.add(args.abundanceRef, {header: "weight"})
-	table.add(args.vGeneRef, {header: "vGene"})
-	tsv := table.build("tsv")
+	table.add(columns.getColumn(args.cdr3Ref), {header: "CDR3"})
+	table.add(columns.getColumn(args.abundanceRef), {header: "weight"})
+	table.add(columns.getColumn(args.vGeneRef), {header: "vGene"})
+	tsv := table.build()
 
 	runSpectratype := exec.builder().
 		software(spectratype).
