@@ -137,10 +137,14 @@ wf.body(func(args) {
 	table.add(columns.getColumn(args.cdr3Ref), {header: "CDR3"})
 	table.add(columns.getColumn(args.abundanceRef), {header: "weight"})
 	table.add(columns.getColumn(args.vGeneRef), {header: "vGene"})
+	table.mem("16GiB")
+	table.cpu(1)
 	tsv := table.build()
 
 	runSpectratype := exec.builder().
 		software(spectratype).
+		mem("32GiB").
+		cpu(1).
 		addFile("input.tsv", tsv)
 		
 	if args.abundanceRef == "unweighted" {
@@ -156,14 +160,14 @@ wf.body(func(args) {
 		runSpectratype.getFile("vSpectratype.result.tsv"),
 		"tsv",
 		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec),
-		{splitDataAndSpec: true}
+		{splitDataAndSpec: true, cpu: 1, mem: "16GiB"}
 	)
 
 	cdr3Spectratype := xsv.importFile(
 		runSpectratype.getFile("cdr3Spectratype.result.tsv"),
 		"tsv",
 		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec),
-		{splitDataAndSpec: true}
+		{splitDataAndSpec: true, cpu: 1, mem: "16GiB"}
 	)
 
 	pf := pframes.pFrameBuilder()
