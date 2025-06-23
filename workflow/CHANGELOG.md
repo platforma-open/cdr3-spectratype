@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 2.1.0
+
+### Minor Changes
+
+- 961d2aa: Fix: Migrate xsvTableBuilder
+
 ## 2.0.2
 
 ### Patch Changes
