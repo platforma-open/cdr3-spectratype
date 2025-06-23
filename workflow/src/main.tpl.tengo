@@ -6,6 +6,16 @@ xsv := import("@platforma-sdk/workflow-tengo:pframes.xsv")
 ll := import("@platforma-sdk/workflow-tengo:ll")
 pframes := import("@platforma-sdk/workflow-tengo:pframes")
 
+filter := func(arr, predicate) {
+	filtered := []
+	for item in arr {
+		if predicate(item) {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
+}
+
 spectratype := assets.importSoftware("@platforma-open/milaboratories.cdr3-spectratype.software:main")
 
 /**
@@ -114,36 +124,87 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
 
 wf.prepare(func(args) {
 	bundleBuilder := wf.createPBundleBuilder()
+	bundleBuilder.ignoreMissingDomains()
+	bundleBuilder.addAnchor("main", args.datasetRef)
 
-	bundleBuilder.addAnchor("main", args.cdr3Ref) // PlRef
-	bundleBuilder.addById(args.abundanceRef) // SUniversalPColumnId
-	bundleBuilder.addById(args.vGeneRef) // SUniversalPColumnId
+	// abundance
+	bundleBuilder.addSingle({
+		axes: [{ anchor: "main", idx: 0 }, { anchor: "main", idx: 1 }],
+		annotations: {
+			"pl7.app/isAbundance": "true",
+			"pl7.app/abundance/normalized": "false",
+			"pl7.app/abundance/isPrimary": "true"
+		}
+	}, "abundance")
 
-	return  { 
+	// cdr3
+	bundleBuilder.addMulti({
+		axes: [{ anchor: "main", idx: 1 }],
+		name: "pl7.app/vdj/sequence",
+		domain: {
+			"pl7.app/vdj/feature": "CDR3",
+			"pl7.app/alphabet": args.lengthType
+		}
+	}, "cdr3")
+
+	// v-gene
+	bundleBuilder.addMulti({
+		axes: [{ anchor: "main", idx: 1 }],
+		name: "pl7.app/vdj/geneHit",
+		domain: {
+			"pl7.app/vdj/reference": "VGene"
+		}
+	}, "vGene")
+
+	return {
 		columns: bundleBuilder.build()
 	}
 })
 
 wf.body(func(args) {
 	columns := args.columns
+	datasetSpec := columns.getSpec(args.datasetRef)
+	isSingleCell := datasetSpec.axesSpec[1].name == "pl7.app/vdj/scClonotypeKey"
 
-	cdr3LengthSpec := columns.getSpec(args.cdr3Ref)
-	abundanceSpec := columns.getSpec(args.abundanceRef)
-	vGeneSpec := columns.getSpec(args.vGeneRef)
+	cdr3Col := undefined
+	vGeneCol := undefined
+	if isSingleCell {
+		predicate := func(col) {
+			return col.spec.domain["pl7.app/vdj/scClonotypeChain"] == args.scChain && col.spec.domain["pl7.app/vdj/scClonotypeChain/index"] == "primary"
+		}
+		cdr3Cols := filter(columns.getColumns("cdr3"), predicate)
+		ll.assert(len(cdr3Cols) == 1, "expected exactly 1 CDR3 column for chain, got %d", len(cdr3Cols))
+		cdr3Col = cdr3Cols[0]
 
-	table := columns.xsvTableBuilder()
+		vGeneCols := filter(columns.getColumns("vGene"), predicate)
+		ll.assert(len(vGeneCols) == 1, "expected exactly 1 V gene column for chain, got %d", len(vGeneCols))
+		vGeneCol = vGeneCols[0]
+	} else {
+		ll.assert(len(columns.getColumns("cdr3")) == 1, "expected exactly 1 CDR3 column, got ", len(columns.getColumns("cdr3")))
+		ll.assert(len(columns.getColumns("vGene")) == 1, "expected exactly 1 V gene column, got ", len(columns.getColumns("vGene")))
+		cdr3Col = columns.getColumns("cdr3")[0]
+		vGeneCol = columns.getColumns("vGene")[0]
+	}
+
+	abundanceCol := columns.getColumn("abundance")
+	abundanceSpec := columns.getSpec("abundance")
+	
+	cdr3LengthSpec := cdr3Col.spec
+	vGeneSpec := vGeneCol.spec
+
+	table := pframes.tsvFileBuilder()
 
 	table.setAxisHeader("pl7.app/sampleId", "Sample")
-	table.add(args.cdr3Ref, {header: "CDR3"})
-	table.add(args.abundanceRef, {header: "weight"})
-	table.add(args.vGeneRef, {header: "vGene"})
-	tsv := table.build("tsv")
+	table.add(cdr3Col, { header: "CDR3" })
+	table.add(abundanceCol, { header: "weight" })
+	table.add(vGeneCol, { header: "vGene" })
+	tsv := table.build()
 
 	runSpectratype := exec.builder().
 		software(spectratype).
 		addFile("input.tsv", tsv)
-		
-	if args.abundanceRef == "unweighted" {
+
+	if abundanceSpec.annotations["pl7.app/abundance/unit"] == "unweighted" {
 		runSpectratype = runSpectratype.arg("--unweighted")
 	}
 

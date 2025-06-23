@@ -3,9 +3,10 @@ import type { GraphMakerProps } from '@milaboratories/graph-maker';
 import { GraphMaker } from '@milaboratories/graph-maker';
 import '@milaboratories/graph-maker/styles';
 import type { PDataColumnSpec } from '@platforma-sdk/model';
-import { PlBtnGroup, PlDropdown, PlDropdownRef } from '@platforma-sdk/ui-vue';
-import { computed, useTemplateRef } from 'vue';
+import { PlBtnGroup } from '@platforma-sdk/ui-vue';
+import { computed } from 'vue';
 import { useApp } from '../app';
+import Settings from './Settings.vue';
 
 const app = useApp();
 
@@ -63,18 +64,20 @@ const weightOptions = [
   },
 ];
 
-const graphMakerRef = useTemplateRef('graphMaker');
+const stateKey = computed(() => ({
+  pf: app.model.outputs.pf,
+  weightedFlag: app.model.ui.weightedFlag,
+}));
 
 const setWeightedFlag = (flag: boolean) => {
   app.model.ui.weightedFlag = flag;
-  graphMakerRef.value?.reset();
 };
 </script>
 
 <template>
   <GraphMaker
-    ref="graphMaker"
     v-model="app.model.ui.bubblePlotState"
+    :data-state-key="stateKey"
     chart-type="bubble"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
@@ -84,26 +87,7 @@ const setWeightedFlag = (flag: boolean) => {
       <PlBtnGroup v-model="app.model.ui.weightedFlag" :options="weightOptions" @v-model:set="setWeightedFlag"/>
     </template>
     <template #settingsSlot>
-      <PlDropdownRef
-        v-model="app.model.args.cdr3Ref"
-        :options="app.model.outputs.cdr3Options"
-        label="CDR3 sequence"
-        required
-      />
-
-      <PlDropdown
-        v-model="app.model.args.abundanceRef"
-        :options="app.model.outputs.abundanceOptions"
-        label="Abundance (weight)"
-        required
-      />
-
-      <PlDropdown
-        v-model="app.model.args.vGeneRef"
-        :options="app.model.outputs.vGeneOptions"
-        label="V gene"
-        required
-      />
+      <Settings />
     </template>
   </GraphMaker>
 </template>
