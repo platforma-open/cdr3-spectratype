@@ -1,11 +1,10 @@
 import type { GraphMakerState } from '@milaboratories/graph-maker';
-import type { InferOutputsType, PlRef, SUniversalPColumnId } from '@platforma-sdk/model';
-import { BlockModel, createPFrameForGraphs, isPColumnSpec } from '@platforma-sdk/model';
+import type { InferOutputsType, PlRef } from '@platforma-sdk/model';
+import { BlockModel, createPFrameForGraphs } from '@platforma-sdk/model';
 
 export type BlockArgs = {
-  cdr3Ref?: PlRef;
-  abundanceRef?: SUniversalPColumnId;
-  vGeneRef?: SUniversalPColumnId;
+  datasetRef?: PlRef;
+  sequenceType: 'aminoacid' | 'nucleotide';
 };
 
 export type UiState = {
@@ -18,7 +17,9 @@ export type UiState = {
 
 export const model = BlockModel.create()
 
-  .withArgs<BlockArgs>({})
+  .withArgs<BlockArgs>({
+    sequenceType: 'aminoacid',
+  })
 
   .withUiState<UiState>({
     blockTitle: 'CDR3 Spectratype',
@@ -42,57 +43,30 @@ export const model = BlockModel.create()
 
   .argsValid((ctx) => {
     return [
-      ctx.args.cdr3Ref,
-      ctx.args.abundanceRef,
-      ctx.args.vGeneRef,
+      ctx.args.datasetRef,
+      ctx.args.sequenceType,
     ].every((arg) => arg !== undefined);
   })
 
-  .output('cdr3Options', (ctx) =>
-    ctx.resultPool.getOptions((c) =>
-      isPColumnSpec(c) && c.valueType === 'String'
-      && c.name === 'pl7.app/vdj/sequence'
-      && c.domain?.['pl7.app/vdj/feature'] === 'CDR3',
-    ))
-
-  .output('abundanceOptions', (ctx) => {
-    const inputRef = ctx.args.cdr3Ref;
-    if (inputRef === undefined) return undefined;
-    return ctx.resultPool.getCanonicalOptions({ main: inputRef },
-      {
-        axes: [{/* sampleId */}, { anchor: 'main', idx: 0 }],
-        annotations: {
-          'pl7.app/isAbundance': 'true',
-          'pl7.app/abundance/normalized': 'false',
-        },
-      },
-    );
-  })
-
-  .output('vGeneOptions', (ctx) => {
-    const inputRef = ctx.args.cdr3Ref;
-    if (inputRef === undefined) return undefined;
-    return ctx.resultPool.getCanonicalOptions({ main: inputRef }, [
-      {
-        axes: [{ anchor: 'main', idx: 0 }],
-        name: 'pl7.app/vdj/geneHit',
-        domain: {
-          'pl7.app/vdj/reference': 'VGene',
-          'pl7.app/vdj/scClonotypeChain': { anchor: 'main' },
-          'pl7.app/vdj/scClonotypeChain/index': { anchor: 'main' },
-        },
-      },
-      {
-        axes: [{ anchor: 'main', idx: 0 }],
-        name: 'pl7.app/vdj/geneHitWithAllele',
-        domain: {
-          'pl7.app/vdj/reference': 'VGene',
-          'pl7.app/vdj/scClonotypeChain': { anchor: 'main' },
-          'pl7.app/vdj/scClonotypeChain/index': { anchor: 'main' },
-        },
-      },
-    ], { ignoreMissingDomains: true });
-  })
+  .output('datasetOptions', (ctx) =>
+    ctx.resultPool.getOptions([{
+      axes: [
+        { name: 'pl7.app/sampleId' },
+        { name: 'pl7.app/vdj/clonotypeKey' },
+      ],
+      annotations: { 'pl7.app/isAnchor': 'true' },
+    }, {
+      axes: [
+        { name: 'pl7.app/sampleId' },
+        { name: 'pl7.app/vdj/scClonotypeKey' },
+      ],
+      annotations: { 'pl7.app/isAnchor': 'true' },
+    }],
+    {
+      // suppress native label of the column (e.g. "Number of Reads") to show only the dataset label
+      label: { includeNativeLabel: false },
+    }),
+  )
 
   .output('pf', (ctx) => {
     const pCols = ctx.outputs?.resolve('pf')?.getPColumns();

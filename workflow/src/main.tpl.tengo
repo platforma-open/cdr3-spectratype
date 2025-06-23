@@ -114,12 +114,43 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
 
 wf.prepare(func(args) {
 	bundleBuilder := wf.createPBundleBuilder()
+	bundleBuilder.ignoreMissingDomains() // to make query work for both bulk and single cell data
+	bundleBuilder.addAnchor("main", args.datasetRef)
 
-	bundleBuilder.addAnchor("main", args.cdr3Ref) // PlRef
-	bundleBuilder.addById(args.abundanceRef) // SUniversalPColumnId
-	bundleBuilder.addById(args.vGeneRef) // SUniversalPColumnId
+	// abundance
+	bundleBuilder.addSingle({
+		axes: [{ anchor: "main", idx: 0 }, { anchor: "main", idx: 1 }],
+		annotations: {
+			"pl7.app/isAbundance": "true",
+			"pl7.app/abundance/normalized": "false",
+			"pl7.app/abundance/isPrimary": "true"
+		}
+	}, "abundance")
 
-	return  { 
+	// CDR3 sequence
+	bundleBuilder.addSingle({
+		axes: [{ anchor: "main", idx: 1 }],
+		name: "pl7.app/vdj/sequence",
+		domain: {
+			"pl7.app/vdj/feature": "CDR3",
+			"pl7.app/alphabet": args.sequenceType,
+			"pl7.app/vdj/scClonotypeChain": "A",
+			"pl7.app/vdj/scClonotypeChain/index": "primary"
+		}
+	}, "cdr3")
+
+	// V gene
+	bundleBuilder.addSingle({
+		axes: [{ anchor: "main", idx: 1 }],
+		name: "pl7.app/vdj/geneHit",
+		domain: {
+			"pl7.app/vdj/reference": "VGene",
+			"pl7.app/vdj/scClonotypeChain": "A",
+			"pl7.app/vdj/scClonotypeChain/index": "primary"
+		}
+	}, "vGene")
+
+	return { 
 		columns: bundleBuilder.build()
 	}
 })
@@ -127,23 +158,27 @@ wf.prepare(func(args) {
 wf.body(func(args) {
 	columns := args.columns
 
-	cdr3LengthSpec := columns.getSpec(args.cdr3Ref)
-	abundanceSpec := columns.getSpec(args.abundanceRef)
-	vGeneSpec := columns.getSpec(args.vGeneRef)
+	cdr3LengthSpec := columns.getSpec("cdr3")
+	abundanceSpec := columns.getSpec("abundance")
+	vGeneSpec := columns.getSpec("vGene")
 
 	table := pframes.tsvFileBuilder()
 
 	table.setAxisHeader("pl7.app/sampleId", "Sample")
-	table.add(columns.getColumn(args.cdr3Ref), {header: "CDR3"})
-	table.add(columns.getColumn(args.abundanceRef), {header: "weight"})
-	table.add(columns.getColumn(args.vGeneRef), {header: "vGene"})
+	table.add(columns.getColumn("cdr3"), {header: "CDR3"})
+	table.add(columns.getColumn("abundance"), {header: "weight"})
+	table.add(columns.getColumn("vGene"), {header: "vGene"})
+	table.mem("16GiB")
+	table.cpu(1)
 	tsv := table.build()
 
 	runSpectratype := exec.builder().
 		software(spectratype).
+		mem("32GiB").
+		cpu(1).
 		addFile("input.tsv", tsv)
 		
-	if args.abundanceRef == "unweighted" {
+	if args.weightedFlag == false {
 		runSpectratype = runSpectratype.arg("--unweighted")
 	}
 
@@ -156,14 +191,22 @@ wf.body(func(args) {
 		runSpectratype.getFile("vSpectratype.result.tsv"),
 		"tsv",
 		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec),
-		{splitDataAndSpec: true}
+		{
+			splitDataAndSpec: true,
+			cpu: 1,
+			mem: "16GiB"
+		}
 	)
 
 	cdr3Spectratype := xsv.importFile(
 		runSpectratype.getFile("cdr3Spectratype.result.tsv"),
 		"tsv",
 		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec),
-		{splitDataAndSpec: true}
+		{
+			splitDataAndSpec: true,
+			cpu: 1,
+			mem: "16GiB"
+		}
 	)
 
 	pf := pframes.pFrameBuilder()

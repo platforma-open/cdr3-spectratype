@@ -63,6 +63,17 @@ const weightOptions = [
   },
 ];
 
+const sequenceTypeOptions = [
+  {
+    label: 'Amino Acid',
+    value: 'aminoacid',
+  },
+  {
+    label: 'Nucleotide',
+    value: 'nucleotide',
+  },
+];
+
 const graphMakerRef = useTemplateRef('graphMaker');
 
 const setWeightedFlag = (flag: boolean) => {
@@ -85,23 +96,16 @@ const setWeightedFlag = (flag: boolean) => {
     </template>
     <template #settingsSlot>
       <PlDropdownRef
-        v-model="app.model.args.cdr3Ref"
-        :options="app.model.outputs.cdr3Options"
-        label="CDR3 sequence"
+        v-model="app.model.args.datasetRef"
+        :options="app.model.outputs.datasetOptions"
+        label="Dataset"
         required
       />
 
       <PlDropdown
-        v-model="app.model.args.abundanceRef"
-        :options="app.model.outputs.abundanceOptions"
-        label="Abundance (weight)"
-        required
-      />
-
-      <PlDropdown
-        v-model="app.model.args.vGeneRef"
-        :options="app.model.outputs.vGeneOptions"
-        label="V gene"
+        v-model="app.model.args.sequenceType"
+        :options="sequenceTypeOptions"
+        label="Sequence Type"
         required
       />
     </template>
