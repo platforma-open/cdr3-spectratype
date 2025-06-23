@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.model
 
+## 3.0.0
+
+### Major Changes
+
+- 138f43a: Switch to anchored queries
+
 ## 2.0.1
 
 ### Patch Changes

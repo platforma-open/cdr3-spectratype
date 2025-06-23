@@ -1,5 +1,16 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 3.0.0
+
+### Major Changes
+
+- 138f43a: Switch to anchored queries
+
+### Patch Changes
+
+- Updated dependencies [138f43a]
+  - @platforma-open/milaboratories.cdr3-spectratype.model@3.0.0
+
 ## 2.0.1
 
 ### Patch Changes
