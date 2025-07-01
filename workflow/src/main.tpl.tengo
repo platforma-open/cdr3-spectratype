@@ -5,6 +5,7 @@ assets:= import("@platforma-sdk/workflow-tengo:assets")
 xsv := import("@platforma-sdk/workflow-tengo:pframes.xsv")
 ll := import("@platforma-sdk/workflow-tengo:ll")
 pframes := import("@platforma-sdk/workflow-tengo:pframes")
+pSpec := import("@platforma-sdk/workflow-tengo:pframes.spec")
 
 filter := func(arr, predicate) {
 	filtered := []
@@ -227,12 +228,20 @@ wf.body(func(args) {
 		{splitDataAndSpec: true}
 	)
 
+	// Make trace for provenance
+	trace := pSpec.makeTrace(datasetSpec,
+		{
+			type: "milaboratories.cdr3-spectratype",
+			importance: 30,
+			label: "CDR3 Spectratype"
+		})
+
 	pf := pframes.pFrameBuilder()
 	for id, v in vSpectratype {
-		pf.add(id + "-v", v.spec, v.data)
+		pf.add(id + "-v", trace.inject(v.spec), v.data)
 	}
 	for id, v in cdr3Spectratype {
-		pf.add(id + "-cdr3", v.spec, v.data)
+		pf.add(id + "-cdr3", trace.inject(v.spec), v.data)
 	}
 	pf = pf.build()
 
