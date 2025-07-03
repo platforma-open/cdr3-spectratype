@@ -9,39 +9,38 @@ import { useApp } from '../app';
 const app = useApp();
 
 const defaultOptions = computed((): GraphMakerProps['defaultOptions'] => {
+  if (!app.model.outputs.pfPcols) return [];
+
+  const spectratypePcols = app.model.outputs.pfPcols;
+
+  // Find the correct spectratype PColumn based on the weighted flag
+  const targetType = app.model.ui.weightedFlag ? 'weighted' : 'unweighted';
+  const mainCol = spectratypePcols.find((pcol) =>
+    pcol.spec.name === 'pl7.app/vdj/cdr3Spectratype'
+    && pcol.spec.domain?.['pl7.app/vdj/cdr3Spectratype/type'] === targetType,
+  );
+
+  if (!mainCol) return [];
+
+  // Spectratype Pcol has structure [sampleId][cdr3Length][geneHit] -> sum
+  // We can use axesSpec to get the correct column for each input
+
   return [
     {
       inputName: 'y',
-      selectedSource: {
-        kind: 'PColumn',
-        valueType: 'Float',
-        name: 'pl7.app/vdj/cdr3Spectratype',
-        domain: {
-          'pl7.app/vdj/cdr3Spectratype/type': app.model.ui.weightedFlag ? 'weighted' : 'unweighted',
-        },
-        axesSpec: [],
-      },
+      selectedSource: mainCol.spec,
     },
     {
       inputName: 'primaryGrouping',
-      selectedSource: {
-        type: 'Int',
-        name: 'pl7.app/vdj/cdr3Length',
-      },
+      selectedSource: mainCol.spec.axesSpec[1], // cdr3Length
     },
     {
       inputName: 'secondaryGrouping',
-      selectedSource: {
-        type: 'String',
-        name: 'pl7.app/vdj/cdr3',
-      },
+      selectedSource: mainCol.spec.axesSpec[2], // geneHit (for CDR3 plot, this is still geneHit)
     },
     {
       inputName: 'tabBy',
-      selectedSource: {
-        type: 'String',
-        name: 'pl7.app/sampleId',
-      },
+      selectedSource: mainCol.spec.axesSpec[0], // sampleId
     },
   ];
 });

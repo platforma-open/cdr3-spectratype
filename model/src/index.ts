@@ -1,5 +1,5 @@
 import type { GraphMakerState } from '@milaboratories/graph-maker';
-import type { InferOutputsType, PlRef } from '@platforma-sdk/model';
+import type { InferOutputsType, PColumnIdAndSpec, PlRef } from '@platforma-sdk/model';
 import { BlockModel, createPFrameForGraphs } from '@platforma-sdk/model';
 
 export type BlockArgs = {
@@ -44,7 +44,9 @@ export const model = BlockModel.create()
   })
 
   .argsValid((ctx) => {
-    return ctx.args.datasetRef !== undefined;
+    return ctx.args.datasetRef !== undefined
+      && ctx.args.lengthType !== undefined
+      && ctx.args.scChain !== undefined;
   })
 
   .output('datasetOptions', (ctx) =>
@@ -79,6 +81,22 @@ export const model = BlockModel.create()
     }
 
     return createPFrameForGraphs(ctx, pCols);
+  })
+
+  // Returns a list of Pcols for plot defaults - only from this block's workflow
+  .output('pfPcols', (ctx) => {
+    const pCols = ctx.outputs?.resolve('pf')?.getPColumns();
+    if (pCols === undefined) {
+      return undefined;
+    }
+
+    return pCols.map(
+      (c) =>
+        ({
+          columnId: c.id,
+          spec: c.spec,
+        } satisfies PColumnIdAndSpec),
+    );
   })
 
   .output('isRunning', (ctx) => ctx.outputs?.getIsReadyOrError() === false)
