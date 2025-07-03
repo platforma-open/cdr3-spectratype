@@ -18,7 +18,7 @@ catalog:
   "@milaboratories/graph-maker": ^1.1.119
   
 
-  "@platforma-open/milaboratories.runenv-python-3": ^1.1.7
+  "@platforma-open/milaboratories.runenv-python-3": ^1.1.16
   
   "vue": ^3.5.13
   "vue-tsc": ^2.2.8

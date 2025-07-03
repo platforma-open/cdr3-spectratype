@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 2.1.0
+
+### Minor Changes
+
+- a924eb7: allow prepare venv on Windows
+
 ## 2.0.6
 
 ### Patch Changes

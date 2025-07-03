@@ -13,8 +13,8 @@ catalogs:
       specifier: ^1.1.119
       version: 1.1.119
     '@platforma-open/milaboratories.runenv-python-3':
-      specifier: ^1.1.7
-      version: 1.1.7
+      specifier: ^1.1.16
+      version: 1.1.16
     '@platforma-sdk/block-tools':
       specifier: ^2.5.57
       version: 2.5.57
@@ -126,7 +126,7 @@ importers:
     devDependencies:
       '@platforma-open/milaboratories.runenv-python-3':
         specifier: 'catalog:'
-        version: 1.1.7
+        version: 1.1.16
       '@platforma-sdk/package-builder':
         specifier: 'catalog:'
         version: 2.16.1
@@ -1166,8 +1166,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@platforma-open/milaboratories.runenv-python-3@1.1.7':
-    resolution: {integrity: sha512-b3hWUFMQOG0O3JExLXyRhXQ5t/XQu3dNrcGyQ/RfllIX9RPYLA5yYRG6x2uc7m9LYqOD/GjMWUQ1TCTbRaBxnQ==}
+  '@platforma-open/milaboratories.runenv-python-3@1.1.16':
+    resolution: {integrity: sha512-A46M7cK1uVW4itLjXX9nodZm97ETcDBDQPQpBsPmu+Wjy8wlyHxUUH/v8KvtW45gNcW+yNO0LvzqE0u4GL86Jg==}
 
   '@platforma-open/milaboratories.software-ptabler@1.6.0':
     resolution: {integrity: sha512-pHOMYwDikYB2L8K7XoTHDNJ7lr+mGIXv88iov1UZkSdvdOTb+owD3xZ3u9uxDNwyzyiQ7a4E+MIAdx/eJEYL8g==}
@@ -6670,7 +6670,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@platforma-open/milaboratories.runenv-python-3@1.1.7': {}
+  '@platforma-open/milaboratories.runenv-python-3@1.1.16': {}
 
   '@platforma-open/milaboratories.software-ptabler@1.6.0': {}
 
