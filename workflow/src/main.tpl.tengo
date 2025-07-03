@@ -27,11 +27,13 @@ spectratype := assets.importSoftware("@platforma-open/milaboratories.cdr3-spectr
 		abundanceSpec: The spec for the abundance column.
 		vGeneSpec: The spec for the vGene column.
 		cdr3Spec: The spec for the cdr3Length column.
+		lengthType: The type of sequence used as input.
+		scChain: The chain (only when processing single cell data).
 	
 	Returns:
 		A spec for the given type of spectratype.
 */
-getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
+getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec, lengthType, scChain) {
 	if type != "v" && type != "cdr3" {
 		ll.panic("Invalid type: " + type)
 	}
@@ -42,6 +44,12 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
 
 	if type == "v" {
 		label = "CDR3 V Spectratype"
+		if lengthType != undefined {
+			label = label + " (" + lengthType + ")"
+		}
+		if scChain != undefined {
+			label = label + " " + scChain
+		}
 		secondAxis = {
 			column: "vGene",
 			spec: {
@@ -55,6 +63,12 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
 		}
 	} else if type == "cdr3" {
 		label = "CDR3 Spectratype"
+		if lengthType != undefined {
+			label = label + " (" + lengthType + ")"
+		}
+		if scChain != undefined {
+			label = label + " " + scChain
+		}
 		secondAxis = {
 			column: "CDR3",
 			spec: {
@@ -217,14 +231,14 @@ wf.body(func(args) {
 	vSpectratype := xsv.importFile(
 		runSpectratype.getFile("vSpectratype.result.tsv"),
 		"tsv",
-		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec),
+		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
 		{splitDataAndSpec: true}
 	)
 
 	cdr3Spectratype := xsv.importFile(
 		runSpectratype.getFile("cdr3Spectratype.result.tsv"),
 		"tsv",
-		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec),
+		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
 		{splitDataAndSpec: true}
 	)
 
