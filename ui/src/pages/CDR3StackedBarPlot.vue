@@ -22,9 +22,6 @@ const defaultOptions = computed((): GraphMakerProps['defaultOptions'] => {
 
   if (!mainCol) return [];
 
-  // Spectratype Pcol has structure [sampleId][cdr3Length][geneHit] -> sum
-  // We can use axesSpec to get the correct column for each input
-
   return [
     {
       inputName: 'y',

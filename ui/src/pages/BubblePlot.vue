@@ -10,7 +10,7 @@ import Settings from './Settings.vue';
 const app = useApp();
 
 const defaultOptions = computed((): GraphMakerProps['defaultOptions'] => {
-  if (!app.model.outputs.pfPcols) return undefined;
+  if (!app.model.outputs.pfPcols) return [];
 
   // Use the PColumns exposed from the PFrame
   const spectratypePcols = app.model.outputs.pfPcols;
@@ -26,7 +26,10 @@ const defaultOptions = computed((): GraphMakerProps['defaultOptions'] => {
     && pcol.spec.domain?.['pl7.app/vdj/cdr3Spectratype/type'] === targetType,
   );
 
-  if (!mainCol) return undefined;
+  if (!mainCol) return [];
+
+  // Spectratype Pcol has structure [sampleId][cdr3Length][geneHit] -> sum
+  // We can use axesSpec to get the correct column for each input
 
   return [
     {
