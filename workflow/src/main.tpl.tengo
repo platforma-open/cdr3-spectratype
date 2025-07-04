@@ -246,7 +246,7 @@ wf.body(func(args) {
 	trace := pSpec.makeTrace(datasetSpec,
 		{
 			type: "milaboratories.cdr3-spectratype",
-			importance: 30,
+			importance: 50,
 			label: "CDR3 Spectratype"
 		})
 
