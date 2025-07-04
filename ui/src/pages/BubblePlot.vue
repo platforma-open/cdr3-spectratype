@@ -2,7 +2,6 @@
 import type { GraphMakerProps } from '@milaboratories/graph-maker';
 import { GraphMaker } from '@milaboratories/graph-maker';
 import '@milaboratories/graph-maker/styles';
-import type { PDataColumnSpec } from '@platforma-sdk/model';
 import { PlBtnGroup } from '@platforma-sdk/ui-vue';
 import { computed } from 'vue';
 import { useApp } from '../app';
@@ -11,44 +10,47 @@ import Settings from './Settings.vue';
 const app = useApp();
 
 const defaultOptions = computed((): GraphMakerProps['defaultOptions'] => {
-  const mainCol: PDataColumnSpec = {
-    kind: 'PColumn',
-    valueType: 'Float',
-    name: 'pl7.app/vdj/vSpectratype',
-    domain: {
-      'pl7.app/vdj/cdr3Spectratype/type': app.model.ui.weightedFlag ? 'weighted' : 'unweighted',
-    },
-    axesSpec: [],
-  };
+  if (!app.model.outputs.pfPcols) return [];
+
+  // Use the PColumns exposed from the PFrame
+  const spectratypePcols = app.model.outputs.pfPcols;
+
+  // Important note:
+  // The workflow creates separate PColumns with different domain structures for weighted vs unweighted:
+  // - Weighted: includes both "pl7.app/vdj/cdr3Spectratype/type": "weighted" AND "pl7.app/abundance/unit"
+  // - Unweighted: only includes "pl7.app/vdj/cdr3Spectratype/type": "unweighted"
+  // Domain must match exactly.
+  const targetType = app.model.ui.weightedFlag ? 'weighted' : 'unweighted';
+  const mainCol = spectratypePcols.find((pcol) =>
+    pcol.spec.name === 'pl7.app/vdj/vSpectratype'
+    && pcol.spec.domain?.['pl7.app/vdj/cdr3Spectratype/type'] === targetType,
+  );
+
+  if (!mainCol) return [];
+
+  // Spectratype Pcol has structure [sampleId][cdr3Length][geneHit] -> sum
+  // We can use axesSpec to get the correct column for each input
+
   return [
     {
       inputName: 'valueSize',
-      selectedSource: mainCol,
+      selectedSource: mainCol.spec,
     },
     {
       inputName: 'valueColor',
-      selectedSource: mainCol,
+      selectedSource: mainCol.spec,
     },
     {
       inputName: 'x',
-      selectedSource: {
-        type: 'String',
-        name: 'pl7.app/vdj/geneHit',
-      },
+      selectedSource: mainCol.spec.axesSpec[2],
     },
     {
       inputName: 'y',
-      selectedSource: {
-        type: 'Int',
-        name: 'pl7.app/vdj/cdr3Length',
-      },
+      selectedSource: mainCol.spec.axesSpec[1],
     },
     {
       inputName: 'tabBy',
-      selectedSource: {
-        type: 'String',
-        name: 'pl7.app/sampleId',
-      },
+      selectedSource: mainCol.spec.axesSpec[0],
     },
   ];
 });

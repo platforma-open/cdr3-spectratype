@@ -3,6 +3,7 @@ wf := import("@platforma-sdk/workflow-tengo:workflow")
 xsv := import("@platforma-sdk/workflow-tengo:pframes.xsv")
 ll := import("@platforma-sdk/workflow-tengo:ll")
 pframes := import("@platforma-sdk/workflow-tengo:pframes")
+pSpec := import("@platforma-sdk/workflow-tengo:pframes.spec")
 pt := import("@platforma-sdk/workflow-tengo:pt")
 
 filter := func(arr, predicate) {
@@ -23,11 +24,13 @@ filter := func(arr, predicate) {
 		abundanceSpec: The spec for the abundance column.
 		vGeneSpec: The spec for the vGene column.
 		cdr3Spec: The spec for the cdr3Length column.
+		lengthType: The type of sequence used as input.
+		scChain: The chain (only when processing single cell data).
 	
 	Returns:
 		A spec for the given type of spectratype.
 */
-getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
+getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec, lengthType, scChain) {
 	if type != "v" && type != "cdr3" {
 		ll.panic("Invalid type: " + type)
 	}
@@ -38,6 +41,12 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
 
 	if type == "v" {
 		label = "CDR3 V Spectratype"
+		if lengthType != undefined {
+			label = label + " (" + lengthType + ")"
+		}
+		if scChain != undefined {
+			label = label + " " + scChain
+		}
 		secondAxis = {
 			column: "vGene",
 			spec: {
@@ -51,6 +60,12 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec) {
 		}
 	} else if type == "cdr3" {
 		label = "CDR3 Spectratype"
+		if lengthType != undefined {
+			label = label + " (" + lengthType + ")"
+		}
+		if scChain != undefined {
+			label = label + " " + scChain
+		}
 		secondAxis = {
 			column: "CDR3",
 			spec: {
@@ -286,24 +301,33 @@ wf.body(func(args) {
 	vSpectratypeResult := xsv.importFile(
 		ptResult.getFile("vSpectratype.result.tsv"),
 		"tsv",
-		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec),
+		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
 		{splitDataAndSpec: true}
 	)
 
 	cdr3SpectratypeResult := xsv.importFile(
 		ptResult.getFile("cdr3Spectratype.result.tsv"),
 		"tsv",
-		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec),
+		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
 		{splitDataAndSpec: true}
 	)
 
+	// Make trace for provenance
+	trace := pSpec.makeTrace(datasetSpec,
+		{
+			type: "milaboratories.cdr3-spectratype",
+			importance: 50,
+			label: "CDR3 Spectratype"
+		})
+
 	pf := pframes.pFrameBuilder()
 	for id, v in vSpectratypeResult {
-		pf.add(id + "-v", v.spec, v.data)
+		pf.add(id + "-v", trace.inject(v.spec), v.data)
 	}
 	for id, v in cdr3SpectratypeResult {
-		pf.add(id + "-cdr3", v.spec, v.data)
+		pf.add(id + "-cdr3", trace.inject(v.spec), v.data)
 	}
+
 	pf = pf.build()
 
 	return {
