@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 3.2.0
+
+### Minor Changes
+
+- 62c3c07: Add trace, fix bugs: UI showing same plot when two blocks present; Exported outputs for nt/aa all have same label
+
 ## 3.1.0
 
 ### Minor Changes
