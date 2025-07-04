@@ -1,5 +1,16 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 2.2.0
+
+### Minor Changes
+
+- a8f95ff: Update SDK & Switch to pt & remove software & set mem&cpu
+
+### Patch Changes
+
+- Updated dependencies [a8f95ff]
+  - @platforma-open/milaboratories.cdr3-spectratype.workflow@3.1.0
+
 ## 2.1.0
 
 ### Minor Changes

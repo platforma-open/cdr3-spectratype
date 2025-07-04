@@ -1,11 +1,10 @@
-// "hello world"
+// CDR3 Spectratype workflow using pt library
 wf := import("@platforma-sdk/workflow-tengo:workflow")
-exec := import("@platforma-sdk/workflow-tengo:exec")
-assets:= import("@platforma-sdk/workflow-tengo:assets")
 xsv := import("@platforma-sdk/workflow-tengo:pframes.xsv")
 ll := import("@platforma-sdk/workflow-tengo:ll")
 pframes := import("@platforma-sdk/workflow-tengo:pframes")
 pSpec := import("@platforma-sdk/workflow-tengo:pframes.spec")
+pt := import("@platforma-sdk/workflow-tengo:pt")
 
 filter := func(arr, predicate) {
 	filtered := []
@@ -16,8 +15,6 @@ filter := func(arr, predicate) {
 	}
 	return filtered
 }
-
-spectratype := assets.importSoftware("@platforma-open/milaboratories.cdr3-spectratype.software:main")
 
 /**
 	Returns a spec for the given type of spectratype.
@@ -207,7 +204,10 @@ wf.body(func(args) {
 	cdr3LengthSpec := cdr3Col.spec
 	vGeneSpec := vGeneCol.spec
 
+	// Build TSV input for pt workflow
 	table := pframes.tsvFileBuilder()
+	table.mem("16GiB") // @TODO: set based on the size of the input
+	table.cpu(4)
 
 	table.setAxisHeader("pl7.app/sampleId", "Sample")
 	table.add(cdr3Col, { header: "CDR3" })
@@ -215,28 +215,98 @@ wf.body(func(args) {
 	table.add(vGeneCol, { header: "vGene" })
 	tsv := table.build()
 
-	runSpectratype := exec.builder().
-		software(spectratype).
-		addFile("input.tsv", tsv)
+	// Use pt workflow instead of custom software
+	ptWf := pt.workflow().
+		mem("16GiB"). // @TODO: set based on the size of the input
+		cpu(4)
 
-	if abundanceSpec.annotations["pl7.app/abundance/unit"] == "unweighted" {
-		runSpectratype = runSpectratype.arg("--unweighted")
-	}
+	// Read the input data
+	df := ptWf.frame(tsv, {xsvType: "tsv"})
 
-	runSpectratype = runSpectratype.
-		saveFile("vSpectratype.result.tsv").
-		saveFile("cdr3Spectratype.result.tsv").
-		run()
+	// Filter out rows with empty CDR3 to avoid problems
+	dfFiltered := df.filter(
+		pt.col("CDR3").isNotNull(),
+		pt.col("CDR3").neq(pt.lit(""))
+	)
 
-	vSpectratype := xsv.importFile(
-		runSpectratype.getFile("vSpectratype.result.tsv"),
+	// Add CDR3 length column
+	dfWithLength := dfFiltered.withColumns(
+		pt.col("CDR3").strLenChars().alias("cdr3Length")
+	)
+
+	// V Spectratype: group by Sample, vGene, cdr3Length and aggregate
+	vSpectratype := dfWithLength.
+		groupBy("Sample", "vGene", "cdr3Length").
+		agg(
+			pt.col("weight").count().alias("size"),
+			pt.col("weight").sum().alias("sum")
+		)
+
+	// CDR3 Spectratype: more complex logic
+	// First, find top 20 CDR3s per sample
+	cdr3Counts := dfWithLength.
+		groupBy("Sample", "CDR3").
+		agg(pt.col("weight").sum().alias("totalWeight"))
+
+	// Rank CDR3s by weight within each sample (descending order)
+	cdr3Ranked := cdr3Counts.withColumns(
+		pt.rank(pt.col("totalWeight"), {descending: true}).over("Sample").alias("rank")
+	)
+
+	// Filter to top 20 CDR3s per sample and add marker column
+	top20Cdr3 := cdr3Ranked.filter(
+		pt.col("rank").le(pt.lit(20))
+	).select(pt.col("Sample"), pt.col("CDR3")).withColumns(
+		pt.lit(true).alias("isTop20")
+	)
+
+	// Join back with original data to mark top CDR3s
+	dfWithTop20 := dfWithLength.join(top20Cdr3, {
+		leftOn: ["Sample", "CDR3"],
+		rightOn: ["Sample", "CDR3"],
+		how: "left"
+	})
+
+	// Replace non-top CDR3s with "other"
+	dfWithOther := dfWithTop20.withColumns(
+		pt.when(pt.col("isTop20").isNull()).
+			then(pt.lit("other")).
+			otherwise(pt.col("CDR3")).
+			alias("CDR3_final")
+	)
+
+	// CDR3 Spectratype: group by Sample, CDR3_final, cdr3Length and aggregate
+	cdr3Spectratype := dfWithOther.
+		groupBy("Sample", "CDR3_final", "cdr3Length").
+		agg(
+			pt.col("weight").count().alias("size"),
+			pt.col("weight").sum().alias("sum")
+		).
+		select(
+			pt.col("Sample"),
+			pt.col("CDR3_final").alias("CDR3"),
+			pt.col("cdr3Length"),
+			pt.col("size"),
+			pt.col("sum")
+		)
+
+	// Save both results
+	vSpectratype.save("vSpectratype.result.tsv")
+	cdr3Spectratype.save("cdr3Spectratype.result.tsv")
+
+	// Run the pt workflow
+	ptResult := ptWf.run()
+
+	// Import results back to p-frames
+	vSpectratypeResult := xsv.importFile(
+		ptResult.getFile("vSpectratype.result.tsv"),
 		"tsv",
 		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
 		{splitDataAndSpec: true}
 	)
 
-	cdr3Spectratype := xsv.importFile(
-		runSpectratype.getFile("cdr3Spectratype.result.tsv"),
+	cdr3SpectratypeResult := xsv.importFile(
+		ptResult.getFile("cdr3Spectratype.result.tsv"),
 		"tsv",
 		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
 		{splitDataAndSpec: true}
@@ -251,12 +321,13 @@ wf.body(func(args) {
 		})
 
 	pf := pframes.pFrameBuilder()
-	for id, v in vSpectratype {
+	for id, v in vSpectratypeResult {
 		pf.add(id + "-v", trace.inject(v.spec), v.data)
 	}
-	for id, v in cdr3Spectratype {
+	for id, v in cdr3SpectratypeResult {
 		pf.add(id + "-cdr3", trace.inject(v.spec), v.data)
 	}
+
 	pf = pf.build()
 
 	return {
