@@ -26,8 +26,8 @@
     "meta": {
       "title": "CDR3 Spectratype",
       "logo": "file:../logos/block-logo.png",
-      "url": "https://github.com/milaboratory/platforma-cdr3-spectratype",
-      "docs": "https://github.com/milaboratory/platforma-cdr3-spectratype/docs",
+      "url": "https://github.com/platforma-open/cdr3-spectratype",
+      "docs": "https://github.com/platforma-open/cdr3-spectratype/docs",
       "support": "mailto:support@milaboratories.com",
       "description": "Calculate CDR3 spectratype",
       "longDescription": "file:../docs/description.md",
