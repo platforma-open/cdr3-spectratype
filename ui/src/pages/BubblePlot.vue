@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GraphMakerProps } from '@milaboratories/graph-maker';
+import type { PredefinedGraphOption } from '@milaboratories/graph-maker';
 import { GraphMaker } from '@milaboratories/graph-maker';
 import '@milaboratories/graph-maker/styles';
 import { PlBtnGroup } from '@platforma-sdk/ui-vue';
@@ -9,7 +9,7 @@ import Settings from './Settings.vue';
 
 const app = useApp();
 
-const defaultOptions = computed((): GraphMakerProps['defaultOptions'] => {
+const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] => {
   if (!app.model.outputs.pfPcols) return [];
 
   // Use the PColumns exposed from the PFrame
