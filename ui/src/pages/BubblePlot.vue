@@ -9,7 +9,7 @@ import Settings from './Settings.vue';
 
 const app = useApp();
 
-const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] | undefined => {
+const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] => {
   if (!app.model.outputs.pfPcols) return [];
 
   // Use the PColumns exposed from the PFrame

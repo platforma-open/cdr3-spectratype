@@ -8,7 +8,7 @@ import { useApp } from '../app';
 
 const app = useApp();
 
-const defaultOptions = computed((): PredefinedGraphOption<'discrete'>[] | undefined => {
+const defaultOptions = computed((): PredefinedGraphOption<'discrete'>[] => {
   if (!app.model.outputs.pfPcols) return [];
 
   const spectratypePcols = app.model.outputs.pfPcols;
