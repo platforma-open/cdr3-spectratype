@@ -1,5 +1,15 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 2.2.3
+
+### Patch Changes
+
+- 8352d7a: Updated SDK to support polars.
+- Updated dependencies [8352d7a]
+  - @platforma-open/milaboratories.cdr3-spectratype.model@3.1.1
+  - @platforma-open/milaboratories.cdr3-spectratype.ui@3.1.2
+  - @platforma-open/milaboratories.cdr3-spectratype.workflow@3.2.1
+
 ## 2.2.2
 
 ### Patch Changes
