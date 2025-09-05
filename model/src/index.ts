@@ -109,6 +109,6 @@ export const model = BlockModel.create()
     { type: 'link', href: '/cdr3StackedBarPlot', label: 'CDR3 Spectratype' },
   ])
 
-  .done();
+  .done(2);
 
 export type BlockOutputs = InferOutputsType<typeof model>;

@@ -6,15 +6,16 @@ packages:
   - test
 
 catalog:
-  "@platforma-sdk/model": ^1.42.20
-  "@platforma-sdk/ui-vue": ^1.42.21
-  "@platforma-sdk/workflow-tengo": ^5.0.3
-  "@platforma-sdk/block-tools": ^2.5.83
-  "@platforma-sdk/test": ^1.42.20
-  "@platforma-sdk/tengo-builder": ^2.1.15
-  "@platforma-sdk/package-builder": ^2.16.2
-  "@platforma-sdk/eslint-config": ^1.0.3
-  "@milaboratories/graph-maker": ^1.1.142
+  "@platforma-sdk/model": ^1.42.51
+  "@platforma-sdk/ui-vue": ^1.42.53
+  "@platforma-sdk/workflow-tengo": ^5.2.0
+  "@platforma-sdk/block-tools": ^2.6.2
+  "@platforma-sdk/test": ^1.42.55
+  "@platforma-sdk/tengo-builder": ^2.1.19
+  "@platforma-sdk/package-builder": ^3.2.4
+  "@platforma-sdk/eslint-config": ^1.1.0
+  "@milaboratories/graph-maker": ^1.1.154
+  "@platforma-sdk/blocks-deps-updater": ^2.0.0
   
   "vue": ^3.5.13
   "vue-tsc": ^2.2.8
@@ -22,7 +23,6 @@ catalog:
   "typescript": ~5.5.4
   "tsup": ~8.3.5
   "turbo": ^2.4.4
-  "js-yaml": ^4.1.0
 
   "vite": ^6.2.2
   "vitest": ^2.1.8
