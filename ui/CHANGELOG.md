@@ -1,5 +1,21 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 3.1.4
+
+### Patch Changes
+
+- 738aa7c: technical release
+- 745d678: technical release
+- ae20cc4: technical release
+- 956034d: technical release
+- e07cad7: technical release
+- Updated dependencies [738aa7c]
+- Updated dependencies [745d678]
+- Updated dependencies [ae20cc4]
+- Updated dependencies [956034d]
+- Updated dependencies [e07cad7]
+  - @platforma-open/milaboratories.cdr3-spectratype.model@3.1.3
+
 ## 3.1.3
 
 ### Patch Changes
