@@ -129,7 +129,7 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec, lengthType, scChain) 
 				}
 			}],
 
-		storageFormat: "Binary",
+		storageFormat: "Parquet",
 		partitionKeyLength: 1
 	}
 }
