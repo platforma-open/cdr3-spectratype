@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 3.2.3
+
+### Patch Changes
+
+- b24025d: Support parquet format
+
 ## 3.2.2
 
 ### Patch Changes
