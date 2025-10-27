@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 3.1.5
+
+### Patch Changes
+
+- 01e5e0d: update graph-maker version
+
 ## 3.1.4
 
 ### Patch Changes
