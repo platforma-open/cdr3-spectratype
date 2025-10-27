@@ -14,7 +14,7 @@ catalog:
   "@platforma-sdk/tengo-builder": ^2.3.2
   "@platforma-sdk/package-builder": ^3.10.5
   "@platforma-sdk/eslint-config": ^1.1.0
-  "@milaboratories/graph-maker": ^1.1.173
+  "@milaboratories/graph-maker": ^1.1.174
   "@platforma-sdk/blocks-deps-updater": ^2.0.0
   
   "vue": ^3.5.13
