@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 2.2.8
+
+### Patch Changes
+
+- c5ed9fe: Update SDK
+
 ## 2.2.7
 
 ### Patch Changes
