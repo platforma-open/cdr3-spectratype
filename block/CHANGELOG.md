@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 2.2.9
+
+### Patch Changes
+
+- 87b480a: Block metadata updated
+
 ## 2.2.8
 
 ### Patch Changes
