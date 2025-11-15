@@ -27,9 +27,8 @@
       "title": "CDR3 Spectratype",
       "logo": "file:../logos/block-logo.png",
       "url": "https://github.com/platforma-open/cdr3-spectratype",
-      "docs": "https://github.com/platforma-open/cdr3-spectratype/docs",
       "support": "mailto:support@milaboratories.com",
-      "description": "Calculate CDR3 spectratype",
+      "description": "Calculates CDR3 length distribution histograms to detect clonal expansions in T-cell and B-cell receptor repertoires.",
       "longDescription": "file:../docs/description.md",
       "changelog": "file:../CHANGELOG.md",
       "tags": [
