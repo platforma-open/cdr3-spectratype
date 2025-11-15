@@ -1,3 +1,5 @@
 # Overview
 
-Calculates spectratype: a histogram of read counts by CDR3 nucleotide or amino acid length for the present variable segment families. The spectratype is useful to detect pathological and highly clonal repertoires, as the spectratype of non-expanded T- and B-cells has a symmetric gaussian-like distribution.
+Calculates CDR3 spectratype histograms showing the distribution of CDR3 sequence lengths (nucleotide or amino acid) across samples to characterize immune receptor repertoire composition. The block processes clonotype data from VDJ processing blocks and generates histograms of read counts grouped by CDR3 length, optionally stratified by V gene families, enabling visualization of the length distribution patterns in T-cell receptor (TCR) and B-cell receptor (BCR) repertoires.
+
+The spectratype is a powerful diagnostic tool for detecting pathological and highly clonal repertoires, as healthy, non-expanded T- and B-cell repertoires typically exhibit a symmetric, gaussian-like distribution of CDR3 lengths. Deviations from this normal distribution, such as sharp peaks at specific lengths or skewed distributions, can indicate clonal expansions, antigen-driven responses, or pathological conditions.
