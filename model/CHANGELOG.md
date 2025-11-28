@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.model
 
+## 3.1.4
+
+### Patch Changes
+
+- be586c3: technical release
+
 ## 3.1.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@platforma-open/milaboratories.cdr3-spectratype.workflow",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "type": "module",
   "description": "Block Workflow",
   "scripts": {

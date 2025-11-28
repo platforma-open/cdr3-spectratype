@@ -1,5 +1,15 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 2.2.10
+
+### Patch Changes
+
+- be586c3: technical release
+- Updated dependencies [be586c3]
+  - @platforma-open/milaboratories.cdr3-spectratype.model@3.1.4
+  - @platforma-open/milaboratories.cdr3-spectratype.ui@3.1.6
+  - @platforma-open/milaboratories.cdr3-spectratype.workflow@3.2.4
+
 ## 2.2.9
 
 ### Patch Changes

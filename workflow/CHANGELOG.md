@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 3.2.4
+
+### Patch Changes
+
+- be586c3: technical release
+
 ## 3.2.3
 
 ### Patch Changes
