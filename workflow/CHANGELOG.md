@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 3.2.5
+
+### Patch Changes
+
+- 0e03515: Fix chain mapping for single cell data
+
 ## 3.2.4
 
 ### Patch Changes
