@@ -181,8 +181,23 @@ wf.body(func(args) {
 	cdr3Col := undefined
 	vGeneCol := undefined
 	if isSingleCell {
+		// Map UI chain value to domain chain value based on receptor type
+		// For TCRAB and TCRGD, the domain mapping is reversed from the UI mapping
+		// UI: Alpha/Gamma -> "A", Beta/Delta -> "B"
+		// Domain: For TCRAB: "A" = Beta, "B" = Alpha; For TCRGD: "A" = Delta, "B" = Gamma
+		receptor := datasetSpec.axesSpec[1].domain["pl7.app/vdj/receptor"]
+		domainChain := args.scChain
+		if receptor == "TCRAB" || receptor == "TCRGD" {
+			// Swap A and B for TCR receptors
+			if args.scChain == "A" {
+				domainChain = "B"
+			} else if args.scChain == "B" {
+				domainChain = "A"
+			}
+		}
+		
 		predicate := func(col) {
-			return col.spec.domain["pl7.app/vdj/scClonotypeChain"] == args.scChain && col.spec.domain["pl7.app/vdj/scClonotypeChain/index"] == "primary"
+			return col.spec.domain["pl7.app/vdj/scClonotypeChain"] == domainChain && col.spec.domain["pl7.app/vdj/scClonotypeChain/index"] == "primary"
 		}
 		cdr3Cols := filter(columns.getColumns("cdr3"), predicate)
 		ll.assert(len(cdr3Cols) == 1, "expected exactly 1 CDR3 column for chain, got %d", len(cdr3Cols))
