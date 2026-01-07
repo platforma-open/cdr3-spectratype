@@ -3,11 +3,10 @@
   "version": "3.1.6",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "watch": "vue-tsc && vite build --watch",
-    "build": "vue-tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "ts-builder build --target browser",
+    "watch": "ts-builder build --target browser --watch",
+    "type-check": "ts-builder types --target browser",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@platforma-open/milaboratories.cdr3-spectratype.model": "workspace:*",
@@ -17,10 +16,12 @@
     "vue": "catalog:"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "catalog:",
+    "@milaboratories/ts-builder": "catalog:",
+    "@milaboratories/ts-configs": "catalog:",
+    "@platforma-sdk/eslint-config": "catalog:",
+    "eslint": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vue-tsc": "catalog:",
-    "@platforma-sdk/eslint-config": "catalog:"
+    "vitest": "catalog:"
   }
 }

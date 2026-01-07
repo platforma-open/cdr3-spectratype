@@ -86,4 +86,4 @@ const scChainOptions = computed(() => {
     :options="scChainOptions ?? []"
     label="Chain"
   />
-</template> 
+</template>

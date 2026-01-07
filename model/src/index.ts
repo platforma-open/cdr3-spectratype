@@ -74,7 +74,7 @@ export const model = BlockModel.create()
     return ctx.resultPool.getPColumnSpecByRef(ctx.args.datasetRef);
   })
 
-  .output('pf', (ctx) => {
+  .outputWithStatus('pf', (ctx) => {
     const pCols = ctx.outputs?.resolve('pf')?.getPColumns();
     if (pCols === undefined) {
       return undefined;

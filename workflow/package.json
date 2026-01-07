@@ -2,18 +2,16 @@
   "name": "@platforma-open/milaboratories.cdr3-spectratype.workflow",
   "version": "3.2.5",
   "type": "module",
-  "description": "Block Workflow",
+  "description": "Tengo-based template",
   "scripts": {
     "build": "rm -rf dist && pl-tengo check && pl-tengo build",
-    "test": "vitest",
-    "format": "/usr/bin/env emacs --script ./format.el"
+    "format": "/usr/bin/env emacs --script ./format.el",
+    "do-pack": "rm -f *.tgz && pnpm pack && mv *.tgz package.tgz"
   },
   "dependencies": {
     "@platforma-sdk/workflow-tengo": "catalog:"
   },
   "devDependencies": {
-    "@platforma-sdk/tengo-builder": "catalog:",
-    "@platforma-sdk/test": "catalog:",
-    "vitest": "catalog:"
+    "@platforma-sdk/tengo-builder": "catalog:"
   }
 }
