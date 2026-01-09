@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.test
 
+## 2.0.0
+
+### Major Changes
+
+- 93c1dc5: Show running state for tables and graphs
+
 ## 1.0.3
 
 ### Patch Changes

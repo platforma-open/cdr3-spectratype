@@ -1,5 +1,18 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 3.0.0
+
+### Major Changes
+
+- 93c1dc5: Show running state for tables and graphs
+
+### Patch Changes
+
+- Updated dependencies [93c1dc5]
+  - @platforma-open/milaboratories.cdr3-spectratype.workflow@4.0.0
+  - @platforma-open/milaboratories.cdr3-spectratype.model@4.0.0
+  - @platforma-open/milaboratories.cdr3-spectratype.ui@4.0.0
+
 ## 2.2.11
 
 ### Patch Changes
