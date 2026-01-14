@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 4.1.0
+
+### Minor Changes
+
+- 1f3f02b: Support custom block title
+
 ## 4.0.0
 
 ### Major Changes

@@ -1,5 +1,16 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 4.1.0
+
+### Minor Changes
+
+- 1f3f02b: Support custom block title
+
+### Patch Changes
+
+- Updated dependencies [1f3f02b]
+  - @platforma-open/milaboratories.cdr3-spectratype.model@4.1.0
+
 ## 4.0.0
 
 ### Major Changes
