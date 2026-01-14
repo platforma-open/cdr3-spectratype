@@ -328,11 +328,14 @@ wf.body(func(args) {
 	)
 
 	// Make trace for provenance
+	// Use block label if provided, otherwise fall back to default
+	traceLabel := args.customBlockLabel || "CDR3 Spectratype"
+	
 	trace := pSpec.makeTrace(datasetSpec,
 		{
 			type: "milaboratories.cdr3-spectratype",
 			importance: 50,
-			label: "CDR3 Spectratype"
+			label: traceLabel
 		})
 
 	pf := pframes.pFrameBuilder()
