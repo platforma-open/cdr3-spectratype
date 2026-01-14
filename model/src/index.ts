@@ -3,13 +3,14 @@ import type { InferOutputsType, PColumnIdAndSpec, PlRef } from '@platforma-sdk/m
 import { BlockModel, createPFrameForGraphs } from '@platforma-sdk/model';
 
 export type BlockArgs = {
+  defaultBlockLabel: string;
+  customBlockLabel: string;
   datasetRef?: PlRef;
   lengthType: 'aminoacid' | 'nucleotide';
   scChain: 'A' | 'B';
 };
 
 export type UiState = {
-  blockTitle: string;
   bubblePlotState: GraphMakerState;
   weightedFlag: boolean;
   vStackedBarPlotState: GraphMakerState;
@@ -19,12 +20,13 @@ export type UiState = {
 export const model = BlockModel.create()
 
   .withArgs<BlockArgs>({
+    defaultBlockLabel: '',
+    customBlockLabel: '',
     lengthType: 'aminoacid',
     scChain: 'A',
   })
 
   .withUiState<UiState>({
-    blockTitle: 'CDR3 Spectratype',
     bubblePlotState: {
       title: 'CDR3 V Spectratype',
       template: 'bubble',
@@ -101,7 +103,9 @@ export const model = BlockModel.create()
 
   .output('isRunning', (ctx) => ctx.outputs?.getIsReadyOrError() === false)
 
-  .title((ctx) => ctx.uiState?.blockTitle ?? 'CDR3 Spectratype')
+  .title(() => 'CDR3 Spectratype')
+
+  .subtitle((ctx) => ctx.args.customBlockLabel || ctx.args.defaultBlockLabel)
 
   .sections((_) => [
     { type: 'link', href: '/', label: 'Bubble Plot' },

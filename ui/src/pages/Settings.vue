@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import type { PlRef } from '@platforma-sdk/model';
 import { plRefsEqual } from '@platforma-sdk/model';
-import { PlBtnGroup, PlDropdownRef } from '@platforma-sdk/ui-vue';
-import { computed } from 'vue';
+import { PlBtnGroup, PlDropdownRef, PlTextField } from '@platforma-sdk/ui-vue';
+import { computed, watchEffect } from 'vue';
 import { useApp } from '../app';
 
 const app = useApp();
 
 function setInput(inputRef?: PlRef) {
   app.model.args.datasetRef = inputRef;
-  if (inputRef) {
-    const datasetLabel = app.model.outputs.datasetOptions?.find((o) => plRefsEqual(o.ref, inputRef))?.label;
-    if (datasetLabel)
-      app.model.ui.blockTitle = 'CDR3 Spectratype - ' + datasetLabel;
-  }
 }
 
 const isSingleCell = computed(() => {
@@ -62,6 +57,34 @@ const scChainOptions = computed(() => {
       return [];
   }
 });
+
+// Build defaultBlockLabel from dataset name, length type and chain (for single-cell)
+watchEffect(() => {
+  const parts: string[] = [];
+  // Add dataset name
+  const datasetRef = app.model.args.datasetRef;
+  if (datasetRef) {
+    const selectedOption = app.model.outputs.datasetOptions?.find(
+      (option) => plRefsEqual(option.ref, datasetRef),
+    );
+    if (selectedOption?.label) {
+      parts.push(selectedOption.label);
+    }
+  }
+  // Add length type
+  const lengthTypeLabel = lengthTypeOptions.find((o) => o.value === app.model.args.lengthType)?.label;
+  if (lengthTypeLabel) {
+    parts.push(lengthTypeLabel);
+  }
+  // Add chain info for single-cell datasets
+  if (isSingleCell.value && scChainOptions.value) {
+    const chainLabel = scChainOptions.value.find((o) => o.value === app.model.args.scChain)?.label;
+    if (chainLabel) {
+      parts.push(chainLabel);
+    }
+  }
+  app.model.args.defaultBlockLabel = parts.join(' - ');
+});
 </script>
 
 <template>
@@ -72,6 +95,13 @@ const scChainOptions = computed(() => {
     required
     clearable
     @update:model-value="setInput"
+  />
+
+  <PlTextField
+    v-model="app.model.args.customBlockLabel"
+    label="Custom label"
+    :clearable="true"
+    :placeholder="app.model.args.defaultBlockLabel"
   />
 
   <PlBtnGroup
