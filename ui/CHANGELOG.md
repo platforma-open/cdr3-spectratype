@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 4.1.1
+
+### Patch Changes
+
+- 1c9732a: Labels migration
+
 ## 4.1.0
 
 ### Minor Changes
