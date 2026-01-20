@@ -2,12 +2,45 @@
 import type { PredefinedGraphOption } from '@milaboratories/graph-maker';
 import { GraphMaker } from '@milaboratories/graph-maker';
 import '@milaboratories/graph-maker/styles';
+import { plRefsEqual } from '@platforma-sdk/model';
 import { PlBtnGroup } from '@platforma-sdk/ui-vue';
-import { computed } from 'vue';
+import { computed, watchEffect } from 'vue';
 import { useApp } from '../app';
+import { lengthTypeOptions, useIsSingleCell, useScChainOptions } from './constants';
 import Settings from './Settings.vue';
 
 const app = useApp();
+
+// Build defaultBlockLabel from dataset name, length type and chain (for single-cell)
+const isSingleCell = useIsSingleCell(computed(() => app.model.outputs.datasetSpec));
+const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datasetSpec));
+
+watchEffect(() => {
+  const parts: string[] = [];
+  // Add dataset name
+  const datasetRef = app.model.args.datasetRef;
+  if (datasetRef) {
+    const selectedOption = app.model.outputs.datasetOptions?.find(
+      (option) => plRefsEqual(option.ref, datasetRef),
+    );
+    if (selectedOption?.label) {
+      parts.push(selectedOption.label);
+    }
+  }
+  // Add length type
+  const lengthTypeLabel = lengthTypeOptions.find((o) => o.value === app.model.args.lengthType)?.label;
+  if (lengthTypeLabel) {
+    parts.push(lengthTypeLabel);
+  }
+  // Add chain info for single-cell datasets
+  if (isSingleCell.value && scChainOptions.value) {
+    const chainLabel = scChainOptions.value.find((o) => o.value === app.model.args.scChain)?.label;
+    if (chainLabel) {
+      parts.push(chainLabel);
+    }
+  }
+  app.model.args.defaultBlockLabel = parts.join(' - ');
+});
 
 const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] => {
   if (!app.model.outputs.pfPcols) return [];
