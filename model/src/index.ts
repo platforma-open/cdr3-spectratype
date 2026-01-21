@@ -20,7 +20,7 @@ export type UiState = {
 export const model = BlockModel.create()
 
   .withArgs<BlockArgs>({
-    defaultBlockLabel: '',
+    defaultBlockLabel: 'Select Dataset',
     customBlockLabel: '',
     lengthType: 'aminoacid',
     scChain: 'A',
