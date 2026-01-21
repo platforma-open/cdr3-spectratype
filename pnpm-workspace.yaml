@@ -26,6 +26,7 @@ catalog:
   'turbo': ^2.6.3
   'vitest': ^4.0.7
   'vite': ^6.2.4
+  'shx': ^0.4.0
   'eslint': ^9.25.1
   '@changesets/cli': ^2.29.8
   '@types/node': ^22.10.5
