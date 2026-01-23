@@ -1,5 +1,6 @@
 ---
 "@platforma-open/milaboratories.cdr3-spectratype.model": patch
+"@platforma-open/milaboratories.cdr3-spectratype.ui": patch
 ---
 
-Set default block label
+Improve block subtitle generation, automatically open/close Settings panel

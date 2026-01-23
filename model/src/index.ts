@@ -1,6 +1,7 @@
 import type { GraphMakerState } from '@milaboratories/graph-maker';
 import type { InferOutputsType, PColumnIdAndSpec, PlRef } from '@platforma-sdk/model';
 import { BlockModel, createPFrameForGraphs } from '@platforma-sdk/model';
+import { getDefaultBlockLabel } from './label';
 
 export type BlockArgs = {
   defaultBlockLabel: string;
@@ -20,7 +21,10 @@ export type UiState = {
 export const model = BlockModel.create()
 
   .withArgs<BlockArgs>({
-    defaultBlockLabel: 'Select Dataset',
+    defaultBlockLabel: getDefaultBlockLabel({
+      lengthType: 'aminoacid',
+      isSingleCell: false,
+    }),
     customBlockLabel: '',
     lengthType: 'aminoacid',
     scChain: 'A',
@@ -116,3 +120,5 @@ export const model = BlockModel.create()
   .done(2);
 
 export type BlockOutputs = InferOutputsType<typeof model>;
+
+export { getDefaultBlockLabel } from './label';
