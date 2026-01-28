@@ -19,7 +19,7 @@ const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datase
   <PlDropdownRef
     v-model="app.model.args.datasetRef"
     :options="app.model.outputs.datasetOptions"
-    label="Dataset"
+    label="Select dataset"
     required
     clearable
     @update:model-value="setInput"
