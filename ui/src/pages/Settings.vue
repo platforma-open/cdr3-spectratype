@@ -3,7 +3,7 @@ import type { PlRef } from '@platforma-sdk/model';
 import { PlBtnGroup, PlDropdownRef, PlTextField } from '@platforma-sdk/ui-vue';
 import { computed } from 'vue';
 import { useApp } from '../app';
-import { lengthTypeOptions, useIsSingleCell, useScChainOptions } from './constants';
+import { lengthTypeOptions, useIsSingleCell, useScChainOptions } from '../utils';
 
 const app = useApp();
 
@@ -19,7 +19,7 @@ const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datase
   <PlDropdownRef
     v-model="app.model.args.datasetRef"
     :options="app.model.outputs.datasetOptions"
-    label="Dataset"
+    label="Select dataset"
     required
     clearable
     @update:model-value="setInput"
@@ -27,7 +27,7 @@ const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datase
 
   <PlTextField
     v-model="app.model.args.customBlockLabel"
-    label="Custom label"
+    label="Block title"
     :clearable="true"
     :placeholder="app.model.args.defaultBlockLabel"
   />
