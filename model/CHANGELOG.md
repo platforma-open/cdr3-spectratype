@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.model
 
+## 4.1.1
+
+### Patch Changes
+
+- ea9167f: Improve block subtitle generation, automatically open/close Settings panel
+
 ## 4.1.0
 
 ### Minor Changes

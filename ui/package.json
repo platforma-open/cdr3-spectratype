@@ -1,6 +1,6 @@
 {
   "name": "@platforma-open/milaboratories.cdr3-spectratype.ui",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "type": "module",
   "scripts": {
     "build": "ts-builder build --target browser",
