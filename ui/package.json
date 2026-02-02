@@ -9,11 +9,12 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@platforma-open/milaboratories.cdr3-spectratype.model": "workspace:*",
     "@milaboratories/graph-maker": "catalog:",
+    "@milaboratories/helpers": "catalog:",
     "@milaboratories/strings": "catalog:",
-    "@platforma-sdk/ui-vue": "catalog:",
+    "@platforma-open/milaboratories.cdr3-spectratype.model": "workspace:*",
     "@platforma-sdk/model": "catalog:",
+    "@platforma-sdk/ui-vue": "catalog:",
     "vue": "catalog:"
   },
   "devDependencies": {

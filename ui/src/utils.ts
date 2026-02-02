@@ -1,14 +1,15 @@
 import type { PColumnSpec } from '@platforma-sdk/model';
-import { computed, type ComputedRef } from 'vue';
+import type { MaybeRefOrGetter } from 'vue';
+import { computed, toValue, type ComputedRef } from 'vue';
 
 export const lengthTypeOptions = [
   { label: 'Amino acid', value: 'aminoacid' },
   { label: 'Nucleotide', value: 'nucleotide' },
 ] as const;
 
-export function useIsSingleCell(datasetSpec: ComputedRef<PColumnSpec | undefined>): ComputedRef<boolean> {
+export function useIsSingleCell(datasetSpec: MaybeRefOrGetter<PColumnSpec | undefined>): ComputedRef<boolean> {
   return computed(() => {
-    const spec = datasetSpec.value;
+    const spec = toValue(datasetSpec);
     if (!spec) {
       return false;
     }
@@ -16,9 +17,9 @@ export function useIsSingleCell(datasetSpec: ComputedRef<PColumnSpec | undefined
   });
 }
 
-export function useScChainOptions(datasetSpec: ComputedRef<PColumnSpec | undefined>) {
+export function useScChainOptions(datasetSpec: MaybeRefOrGetter<PColumnSpec | undefined>) {
   return computed(() => {
-    const spec = datasetSpec.value;
+    const spec = toValue(datasetSpec);
     if (!spec) {
       return undefined;
     }

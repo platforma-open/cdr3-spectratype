@@ -1,3 +1,4 @@
+import { isJsonEqual } from '@milaboratories/helpers';
 import { getDefaultBlockLabel, model } from '@platforma-open/milaboratories.cdr3-spectratype.model';
 import { defineApp } from '@platforma-sdk/ui-vue';
 import { computed, watchEffect } from 'vue';
@@ -25,30 +26,31 @@ export const useApp = sdkPlugin.useApp;
 type AppModel = ReturnType<typeof useApp>['model'];
 
 function syncDefaultBlockLabel(model: AppModel) {
-  const datasetSpecRef = computed(() => model.outputs.datasetSpec);
-  const isSingleCell = useIsSingleCell(datasetSpecRef);
-  const scChainOptions = useScChainOptions(datasetSpecRef);
+  const isSingleCell = useIsSingleCell(() => model.outputs.datasetSpec);
+  const scChainOptions = useScChainOptions(() => model.outputs.datasetSpec);
+
+  const datasetLabel = computed(() => {
+    if (!model.args.datasetRef) return;
+    return model.outputs.datasetOptions
+      ?.find((option) => isJsonEqual(option.ref, model.args.datasetRef))
+      ?.label;
+  });
+
+  // Get chain label for single-cell datasets
+  const chainLabel = computed(() => {
+    if (!isSingleCell.value) return;
+    return scChainOptions.value?.find((o) => o.value === model.args.scChain)?.label;
+  });
 
   watchEffect(() => {
-    const datasetLabel = model.args.datasetRef
-      ? model.outputs.datasetOptions
-        ?.find((option) => option.ref === model.args.datasetRef)
-        ?.label
-      : undefined;
-
-    // Get chain label for single-cell datasets
-    const chainLabel = isSingleCell.value
-      ? scChainOptions.value?.find((o) => o.value === model.args.scChain)?.label
-      : undefined;
-
     // Get length type label
     const lengthType = model.args.lengthType;
 
     model.args.defaultBlockLabel = getDefaultBlockLabel({
-      datasetLabel,
+      datasetLabel: datasetLabel.value,
       lengthType,
       isSingleCell: isSingleCell.value,
-      chainLabel,
+      chainLabel: chainLabel.value,
     });
   });
 }
