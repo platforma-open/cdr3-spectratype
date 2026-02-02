@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 4.2.0
+
+### Minor Changes
+
+- 884bcd1: Fix default block label derivation issue
+
 ## 4.1.2
 
 ### Patch Changes
