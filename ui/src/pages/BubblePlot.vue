@@ -79,20 +79,12 @@ const weightOptions = [
   },
 ];
 
-const stateKey = computed(() => ({
-  pf: app.model.outputs.pf.ok ? app.model.outputs.pf.value : undefined,
-  weightedFlag: app.model.ui.weightedFlag,
-}));
-
-const setWeightedFlag = (flag: boolean) => {
-  app.model.ui.weightedFlag = flag;
-};
 </script>
 
 <template>
   <GraphMaker
     v-model="app.model.ui.bubblePlotState"
-    :data-state-key="stateKey"
+    :data-state-key="app.model.ui.weightedFlag"
     chart-type="bubble"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
@@ -100,7 +92,7 @@ const setWeightedFlag = (flag: boolean) => {
     :status-text="{ noPframe: { title: strings.callToActions.configureSettingsAndRun } }"
   >
     <template #titleLineSlot>
-      <PlBtnGroup v-model="app.model.ui.weightedFlag" :options="weightOptions" @v-model:set="setWeightedFlag"/>
+      <PlBtnGroup v-model="app.model.ui.weightedFlag" :options="weightOptions"/>
     </template>
     <template #settingsSlot>
       <Settings />
