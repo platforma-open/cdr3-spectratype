@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 4.2.2
+
+### Patch Changes
+
+- 14efaee: update dependencies
+
 ## 4.2.1
 
 ### Patch Changes
