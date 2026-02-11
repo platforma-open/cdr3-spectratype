@@ -5,7 +5,7 @@
   "scripts": {
     "build": "ts-builder build --target browser",
     "watch": "ts-builder build --target browser --watch",
-    "type-check": "ts-builder types --target browser",
+    "type-check": "ts-builder type-check --target browser",
     "lint": "eslint ."
   },
   "dependencies": {
