@@ -22,8 +22,8 @@ watch(
   },
 );
 
-const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] => {
-  if (!app.model.outputs.pfPcols) return [];
+const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] | null => {
+  if (!app.model.outputs.pfPcols) return null;
 
   // Use the PColumns exposed from the PFrame
   const spectratypePcols = app.model.outputs.pfPcols;
@@ -39,7 +39,7 @@ const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] => {
     && pcol.spec.domain?.['pl7.app/vdj/cdr3Spectratype/type'] === targetType,
   );
 
-  if (!mainCol) return [];
+  if (!mainCol) return null;
 
   // Spectratype Pcol has structure [sampleId][cdr3Length][geneHit] -> sum
   // We can use axesSpec to get the correct column for each input
@@ -84,7 +84,6 @@ const weightOptions = [
 <template>
   <GraphMaker
     v-model="app.model.ui.bubblePlotState"
-    :data-state-key="app.model.ui.weightedFlag"
     chart-type="bubble"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
