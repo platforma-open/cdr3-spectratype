@@ -9,8 +9,8 @@ import { useApp } from '../app';
 
 const app = useApp();
 
-const defaultOptions = computed((): PredefinedGraphOption<'discrete'>[] => {
-  if (!app.model.outputs.pfPcols) return [];
+const defaultOptions = computed((): PredefinedGraphOption<'discrete'>[] | null => {
+  if (!app.model.outputs.pfPcols) return null;
 
   const spectratypePcols = app.model.outputs.pfPcols;
 
@@ -59,7 +59,6 @@ const weightOptions = [
 <template>
   <GraphMaker
     v-model="app.model.ui.vStackedBarPlotState"
-    :data-state-key="app.model.ui.weightedFlag"
     chart-type="discrete"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
