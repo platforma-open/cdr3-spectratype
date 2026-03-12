@@ -1,6 +1,6 @@
 import type { GraphMakerState } from '@milaboratories/graph-maker';
 import type { InferOutputsType, PColumnIdAndSpec, PlRef } from '@platforma-sdk/model';
-import { BlockModel, createPFrameForGraphs } from '@platforma-sdk/model';
+import { BlockModel } from '@platforma-sdk/model';
 import { getDefaultBlockLabel } from './label';
 
 export type BlockArgs = {
@@ -86,7 +86,10 @@ export const model = BlockModel.create()
       return undefined;
     }
 
-    return createPFrameForGraphs(ctx, pCols);
+    // Use ctx.createPFrame (not createPFrameForGraphs) to avoid pulling in
+    // result-pool columns from other datasets sharing the same samples block.
+    // The workflow outputs a dataset-scoped pl7.app/label column in pCols.
+    return ctx.createPFrame(pCols);
   })
 
   // Returns a list of Pcols for plot defaults - only from this block's workflow

@@ -168,6 +168,12 @@ wf.prepare(func(args) {
 		}
 	}, "vGene")
 
+	// sample labels — used to build a dataset-scoped label column in the output
+	bundleBuilder.addMulti({
+		axes: [{ anchor: "main", idx: 0 }],
+		name: "pl7.app/label"
+	}, "sampleLabel")
+
 	return {
 		columns: bundleBuilder.build()
 	}
@@ -215,9 +221,19 @@ wf.body(func(args) {
 
 	abundanceCol := columns.getColumn("abundance")
 	abundanceSpec := columns.getSpec("abundance")
-	
+
 	cdr3LengthSpec := cdr3Col.spec
 	vGeneSpec := vGeneCol.spec
+
+	// Build a flat TSV from the global label p-column (if present) for use in ptWf below
+	labelCols := columns.getColumns("sampleLabel")
+	labelTsvFile := undefined
+	if len(labelCols) == 1 {
+		lt := pframes.tsvFileBuilder()
+		lt.setAxisHeader("pl7.app/sampleId", "sampleId")
+		lt.add(labelCols[0], { header: "label" })
+		labelTsvFile = lt.build()
+	}
 
 	// Build TSV input for pt workflow
 	table := pframes.tsvFileBuilder()
@@ -243,6 +259,18 @@ wf.body(func(args) {
 		pt.col("CDR3").isNotNull(),
 		pt.col("CDR3").neq(pt.lit(""))
 	)
+
+	// If a label column was found, filter it to only the samples in this dataset
+	// and save as a side output. Uses groupBy to deduplicate sample IDs.
+	if labelTsvFile != undefined {
+		// groupBy+agg is the only deduplication available (no distinct() in pt); .first() satisfies
+		// agg's requirement for an aggregation expression — the "_s" output is discarded below.
+		uniqueSamples := dfFiltered.groupBy("Sample").agg(pt.col("Sample").first().alias("_s"))
+		ptWf.frame(labelTsvFile, {xsvType: "tsv"}).
+			join(uniqueSamples, {leftOn: ["sampleId"], rightOn: ["Sample"], how: "inner"}).
+			select(pt.col("sampleId"), pt.col("label")).
+			save("filtered_labels.tsv")
+	}
 
 	// Add CDR3 length column
 	dfWithLength := dfFiltered.withColumns(
@@ -327,10 +355,36 @@ wf.body(func(args) {
 		{splitDataAndSpec: true}
 	)
 
+	// Import the dataset-scoped label column produced by ptWf above (if labels were available)
+	filteredLabelPf := {}
+	if labelTsvFile != undefined {
+		filteredLabelPf = xsv.importFile(
+			ptResult.getFile("filtered_labels.tsv"),
+			"tsv",
+			{
+				axes: [{
+					column: "sampleId",
+					spec: labelCols[0].spec.axesSpec[0]
+				}],
+				columns: [{
+					column: "label",
+					spec: {
+						name: "pl7.app/label",
+						valueType: "String",
+						annotations: {"pl7.app/label": "Sample"}
+					}
+				}],
+				storageFormat: "Parquet",
+				partitionKeyLength: 0
+			},
+			{splitDataAndSpec: true}
+		)
+	}
+
 	// Make trace for provenance
 	// Use block label if provided, otherwise fall back to default
 	traceLabel := args.customBlockLabel || "CDR3 Spectratype"
-	
+
 	trace := pSpec.makeTrace(datasetSpec,
 		{
 			type: "milaboratories.cdr3-spectratype",
@@ -344,6 +398,9 @@ wf.body(func(args) {
 	}
 	for id, v in cdr3SpectratypeResult {
 		pf.add(id + "-cdr3", trace.inject(v.spec), v.data)
+	}
+	for id, v in filteredLabelPf {
+		pf.add(id + "-label", v.spec, v.data)
 	}
 
 	pf = pf.build()
