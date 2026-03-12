@@ -227,6 +227,8 @@ wf.body(func(args) {
 
 	// Build a flat TSV from the global label p-column (if present) for use in ptWf below
 	labelCols := columns.getColumns("sampleLabel")
+	// Fail loudly if multiple label columns match — silent fallback would mask misconfiguration.
+	ll.assert(len(labelCols) <= 1, "expected at most 1 label column, got %d", len(labelCols))
 	labelTsvFile := undefined
 	if len(labelCols) == 1 {
 		lt := pframes.tsvFileBuilder()
