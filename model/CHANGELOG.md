@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.model
 
+## 4.2.0
+
+### Minor Changes
+
+- 8d5f408: Update SDK and prevent samples from other datasets seeping into sample selection options
+
 ## 4.1.2
 
 ### Patch Changes
