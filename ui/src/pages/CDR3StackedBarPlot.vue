@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { PredefinedGraphOption } from '@milaboratories/graph-maker';
 import { GraphMaker } from '@milaboratories/graph-maker';
-import '@milaboratories/graph-maker/styles';
 import strings from '@milaboratories/strings';
 import { PlBtnGroup } from '@platforma-sdk/ui-vue';
 import { computed } from 'vue';

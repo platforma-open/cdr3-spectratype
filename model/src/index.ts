@@ -1,6 +1,6 @@
 import type { GraphMakerState } from '@milaboratories/graph-maker';
 import type { InferOutputsType, PColumnIdAndSpec, PlRef } from '@platforma-sdk/model';
-import { BlockModel, createPFrameForGraphs } from '@platforma-sdk/model';
+import { BlockModel } from '@platforma-sdk/model';
 import { getDefaultBlockLabel } from './label';
 
 export type BlockArgs = {
@@ -86,7 +86,22 @@ export const model = BlockModel.create()
       return undefined;
     }
 
-    return createPFrameForGraphs(ctx, pCols);
+    // Use ctx.createPFrame (not createPFrameForGraphs) to avoid pulling in
+    // result-pool columns from other datasets sharing the same samples block.
+    // The workflow outputs a dataset-scoped pl7.app/label column in pCols.
+    // Additionally, include single-axis (sampleId-only) metadata columns from
+    // the result pool anchored to this dataset (e.g. sample groups, patient IDs
+    // added in an upstream samples & data block) for use in graph-maker.
+    // Exclude pl7.app/label since the workflow already provides a dataset-scoped version.
+    const datasetRef = ctx.args.datasetRef;
+    const anchoredMeta = datasetRef !== undefined
+      ? (ctx.resultPool.getAnchoredPColumns(
+          { main: datasetRef },
+          [{ axes: [{ anchor: 'main', idx: 0 }] }],
+        ) ?? []).filter((c) => c.spec.name !== 'pl7.app/label')
+      : [];
+
+    return ctx.createPFrame([...pCols, ...anchoredMeta]);
   })
 
   // Returns a list of Pcols for plot defaults - only from this block's workflow
