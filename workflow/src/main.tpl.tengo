@@ -232,6 +232,8 @@ wf.body(func(args) {
 	labelTsvFile := undefined
 	if len(labelCols) == 1 {
 		lt := pframes.tsvFileBuilder()
+		lt.mem("2GiB") 
+		lt.cpu(1) 
 		lt.setAxisHeader("pl7.app/sampleId", "sampleId")
 		lt.add(labelCols[0], { header: "label" })
 		labelTsvFile = lt.build()
