@@ -396,6 +396,9 @@ wf.body(func(args) {
 			label: traceLabel
 		})
 
+	// Two separate p-frames: pfExport goes to the result pool (no label, avoids
+	// duplicate pl7.app/label entries breaking downstream addSingle queries);
+	// pfOutput includes labels for the block's own UI only.
 	pfExport := pframes.pFrameBuilder()
 	for id, v in vSpectratypeResult {
 		pfExport.add(id + "-v", trace.inject(v.spec), v.data)
