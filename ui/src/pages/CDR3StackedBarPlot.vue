@@ -2,6 +2,7 @@
 import type { PredefinedGraphOption } from '@milaboratories/graph-maker';
 import { GraphMaker } from '@milaboratories/graph-maker';
 import strings from '@milaboratories/strings';
+import type { PColumnSpec } from '@platforma-sdk/model';
 import { PlBtnGroup } from '@platforma-sdk/ui-vue';
 import { computed } from 'vue';
 import { useApp } from '../app';
@@ -53,6 +54,13 @@ const weightOptions = [
   },
 ];
 
+const inputSampleAxis = computed(() => app.model.outputs.datasetSpec?.axesSpec?.[0]?.name);
+
+const metaColumnPredicate = (spec: PColumnSpec) =>
+  inputSampleAxis.value !== undefined
+  && spec.axesSpec[0]?.name === inputSampleAxis.value
+  && !spec.annotations?.['pl7.app/trace']?.includes('milaboratories.cdr3-spectratype');
+
 </script>
 
 <template>
@@ -61,6 +69,7 @@ const weightOptions = [
     chart-type="discrete"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
+    :meta-column-predicate="metaColumnPredicate"
     :readonly-inputs="[ 'y', 'primaryGrouping', 'secondaryGrouping']"
     :status-text="{ noPframe: { title: strings.callToActions.configureSettingsAndRun } }"
   >

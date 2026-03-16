@@ -400,19 +400,16 @@ wf.body(func(args) {
 	// duplicate pl7.app/label entries breaking downstream addSingle queries);
 	// pfOutput includes labels for the block's own UI only.
 	pfExport := pframes.pFrameBuilder()
-	for id, v in vSpectratypeResult {
-		pfExport.add(id + "-v", trace.inject(v.spec), v.data)
-	}
-	for id, v in cdr3SpectratypeResult {
-		pfExport.add(id + "-cdr3", trace.inject(v.spec), v.data)
-	}
-
 	pfOutput := pframes.pFrameBuilder()
 	for id, v in vSpectratypeResult {
-		pfOutput.add(id + "-v", trace.inject(v.spec), v.data)
+		injectedSpec := trace.inject(v.spec)
+		pfExport.add(id + "-v", injectedSpec, v.data)
+		pfOutput.add(id + "-v", v.spec, v.data)
 	}
 	for id, v in cdr3SpectratypeResult {
-		pfOutput.add(id + "-cdr3", trace.inject(v.spec), v.data)
+		injectedSpec := trace.inject(v.spec)
+		pfExport.add(id + "-cdr3", injectedSpec, v.data)
+		pfOutput.add(id + "-cdr3", v.spec, v.data)
 	}
 	for id, v in filteredLabelPf {
 		pfOutput.add(id + "-label", v.spec, v.data)
