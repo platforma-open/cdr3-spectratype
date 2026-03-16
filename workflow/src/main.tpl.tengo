@@ -396,26 +396,35 @@ wf.body(func(args) {
 			label: traceLabel
 		})
 
-	pf := pframes.pFrameBuilder()
+	// Two separate p-frames: pfExport goes to the result pool (no label, avoids
+	// duplicate pl7.app/label entries breaking downstream addSingle queries);
+	// pfOutput includes labels for the block's own UI only.
+	pfExport := pframes.pFrameBuilder()
+	pfOutput := pframes.pFrameBuilder()
 	for id, v in vSpectratypeResult {
-		pf.add(id + "-v", trace.inject(v.spec), v.data)
+		injectedSpec := trace.inject(v.spec)
+		pfExport.add(id + "-v", injectedSpec, v.data)
+		pfOutput.add(id + "-v", v.spec, v.data)
 	}
 	for id, v in cdr3SpectratypeResult {
-		pf.add(id + "-cdr3", trace.inject(v.spec), v.data)
+		injectedSpec := trace.inject(v.spec)
+		pfExport.add(id + "-cdr3", injectedSpec, v.data)
+		pfOutput.add(id + "-cdr3", v.spec, v.data)
 	}
 	for id, v in filteredLabelPf {
-		pf.add(id + "-label", v.spec, v.data)
+		pfOutput.add(id + "-label", v.spec, v.data)
 	}
 
-	pf = pf.build()
+	pfExport = pfExport.build()
+	pfOutput = pfOutput.build()
 
 	return {
 		outputs: {
-			pf: pframes.exportFrame(pf)
+			pf: pframes.exportFrame(pfOutput)
 		},
 
 		exports: {
-			pf: pf
+			pf: pfExport
 		}
 	}
 })
