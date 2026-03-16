@@ -2,7 +2,6 @@
 import type { PredefinedGraphOption } from '@milaboratories/graph-maker';
 import { GraphMaker } from '@milaboratories/graph-maker';
 import strings from '@milaboratories/strings';
-import type { PColumnSpec } from '@platforma-sdk/model';
 import { PlBtnGroup } from '@platforma-sdk/ui-vue';
 import { computed, watch } from 'vue';
 import { useApp } from '../app';
@@ -79,13 +78,6 @@ const weightOptions = [
   },
 ];
 
-const inputSampleAxis = computed(() => app.model.outputs.datasetSpec?.axesSpec?.[0]?.name);
-
-const metaColumnPredicate = (spec: PColumnSpec) =>
-  inputSampleAxis.value !== undefined
-  && spec.axesSpec[0]?.name === inputSampleAxis.value
-  && !spec.annotations?.['pl7.app/trace']?.includes('milaboratories.cdr3-spectratype');
-
 </script>
 
 <template>
@@ -94,7 +86,6 @@ const metaColumnPredicate = (spec: PColumnSpec) =>
     chart-type="bubble"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
-    :meta-column-predicate="metaColumnPredicate"
     :readonly-inputs="['x', 'y', 'valueSize', 'valueColor']"
     :status-text="{ noPframe: { title: strings.callToActions.configureSettingsAndRun } }"
   >
