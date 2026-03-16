@@ -396,26 +396,35 @@ wf.body(func(args) {
 			label: traceLabel
 		})
 
-	pf := pframes.pFrameBuilder()
+	pfExport := pframes.pFrameBuilder()
 	for id, v in vSpectratypeResult {
-		pf.add(id + "-v", trace.inject(v.spec), v.data)
+		pfExport.add(id + "-v", trace.inject(v.spec), v.data)
 	}
 	for id, v in cdr3SpectratypeResult {
-		pf.add(id + "-cdr3", trace.inject(v.spec), v.data)
-	}
-	for id, v in filteredLabelPf {
-		pf.add(id + "-label", v.spec, v.data)
+		pfExport.add(id + "-cdr3", trace.inject(v.spec), v.data)
 	}
 
-	pf = pf.build()
+	pfOutput := pframes.pFrameBuilder()
+	for id, v in vSpectratypeResult {
+		pfOutput.add(id + "-v", trace.inject(v.spec), v.data)
+	}
+	for id, v in cdr3SpectratypeResult {
+		pfOutput.add(id + "-cdr3", trace.inject(v.spec), v.data)
+	}
+	for id, v in filteredLabelPf {
+		pfOutput.add(id + "-label", v.spec, v.data)
+	}
+
+	pfExport = pfExport.build()
+	pfOutput = pfOutput.build()
 
 	return {
 		outputs: {
-			pf: pframes.exportFrame(pf)
+			pf: pframes.exportFrame(pfOutput)
 		},
 
 		exports: {
-			pf: pf
+			pf: pfExport
 		}
 	}
 })
