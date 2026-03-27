@@ -16,6 +16,7 @@ export type UiState = {
   weightedFlag: boolean;
   vStackedBarPlotState: GraphMakerState;
   cdr3StackedBarPlotState: GraphMakerState;
+  aaPositionPlotState: GraphMakerState;
 };
 
 export const model = BlockModel.create()
@@ -44,6 +45,11 @@ export const model = BlockModel.create()
     },
     cdr3StackedBarPlotState: {
       title: 'CDR3 Spectratype',
+      template: 'stackedBar',
+      currentTab: null,
+    },
+    aaPositionPlotState: {
+      title: 'CDR3 AA Position',
       template: 'stackedBar',
       currentTab: null,
     },
@@ -120,17 +126,75 @@ export const model = BlockModel.create()
     );
   })
 
+  .outputWithStatus('aaPositionPf', (ctx) => {
+    const datasetRef = ctx.args.datasetRef;
+    if (datasetRef === undefined) return undefined;
+
+    const pCols = ctx.resultPool.getAnchoredPColumns(
+      { main: datasetRef },
+      [{
+        axes: [
+          { anchor: 'main', idx: 0 },
+          { anchor: 'main', idx: 1 },
+          { name: 'pl7.app/vdj/chain' },
+          { name: 'pl7.app/vdj/numberingPosition' },
+        ],
+      }],
+    );
+
+    if (!pCols || pCols.length === 0) return undefined;
+    return ctx.createPFrame(pCols);
+  })
+
+  .output('aaPositionPCols', (ctx) => {
+    const datasetRef = ctx.args.datasetRef;
+    if (datasetRef === undefined) return undefined;
+
+    const pCols = ctx.resultPool.getAnchoredPColumns(
+      { main: datasetRef },
+      [{
+        axes: [
+          { anchor: 'main', idx: 0 },
+          { anchor: 'main', idx: 1 },
+          { name: 'pl7.app/vdj/chain' },
+          { name: 'pl7.app/vdj/numberingPosition' },
+        ],
+      }],
+    );
+
+    if (!pCols || pCols.length === 0) return undefined;
+    return pCols.map((c) => ({ columnId: c.id, spec: c.spec } satisfies PColumnIdAndSpec));
+  })
+
   .output('isRunning', (ctx) => ctx.outputs?.getIsReadyOrError() === false)
 
   .title(() => 'CDR3 Spectratype')
 
   .subtitle((ctx) => ctx.args.customBlockLabel || ctx.args.defaultBlockLabel)
 
-  .sections((_) => [
-    { type: 'link', href: '/', label: 'Bubble Plot' },
-    { type: 'link', href: '/vStackedBarPlot', label: 'V Spectratype' },
-    { type: 'link', href: '/cdr3StackedBarPlot', label: 'CDR3 Spectratype' },
-  ])
+  .sections((ctx) => {
+    const datasetRef = ctx.args?.datasetRef;
+    const hasAaPositions = datasetRef
+      ? (ctx.resultPool.getAnchoredPColumns(
+          { main: datasetRef },
+          [{
+            axes: [
+              { anchor: 'main', idx: 0 },
+              { anchor: 'main', idx: 1 },
+              { name: 'pl7.app/vdj/chain' },
+              { name: 'pl7.app/vdj/numberingPosition' },
+            ],
+          }],
+        ) ?? []).length > 0
+      : false;
+
+    return [
+      { type: 'link', href: '/', label: 'Bubble Plot' },
+      { type: 'link', href: '/vStackedBarPlot', label: 'V Spectratype' },
+      { type: 'link', href: '/cdr3StackedBarPlot', label: 'CDR3 Spectratype' },
+      ...(hasAaPositions ? [{ type: 'link' as const, href: '/aaPositionPlot' as const, label: 'AA Position' }] : []),
+    ];
+  })
 
   .done(2);
 

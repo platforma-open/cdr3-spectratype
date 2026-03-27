@@ -2,6 +2,7 @@ import { isJsonEqual } from '@milaboratories/helpers';
 import { getDefaultBlockLabel, model } from '@platforma-open/milaboratories.cdr3-spectratype.model';
 import { defineApp } from '@platforma-sdk/ui-vue';
 import { computed, watchEffect } from 'vue';
+import AAPositionPlot from './pages/AAPositionPlot.vue';
 import BubblePlot from './pages/BubblePlot.vue';
 import CDR3StackedBarPlot from './pages/CDR3StackedBarPlot.vue';
 import VStackedBarPlot from './pages/VStackedBarPlot.vue';
@@ -17,6 +18,7 @@ export const sdkPlugin = defineApp(model, (app) => {
       '/': () => BubblePlot,
       '/vStackedBarPlot': () => VStackedBarPlot,
       '/cdr3StackedBarPlot': () => CDR3StackedBarPlot,
+      '/aaPositionPlot': () => AAPositionPlot,
     },
   };
 });
