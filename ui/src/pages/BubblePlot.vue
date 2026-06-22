@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { PredefinedGraphOption } from '@milaboratories/graph-maker';
-import { GraphMaker } from '@milaboratories/graph-maker';
-import strings from '@milaboratories/strings';
-import { PlBtnGroup } from '@platforma-sdk/ui-vue';
-import { computed, watch } from 'vue';
-import { useApp } from '../app';
-import Settings from './Settings.vue';
+import type { PredefinedGraphOption } from "@milaboratories/graph-maker";
+import { GraphMaker } from "@milaboratories/graph-maker";
+import strings from "@milaboratories/strings";
+import { PlBtnGroup } from "@platforma-sdk/ui-vue";
+import { computed, watch } from "vue";
+import { useApp } from "../app";
+import Settings from "./Settings.vue";
 
 const app = useApp();
 
@@ -21,7 +21,7 @@ watch(
   },
 );
 
-const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] | null => {
+const defaultOptions = computed((): PredefinedGraphOption<"bubble">[] | null => {
   if (!app.model.outputs.pfPcols) return null;
 
   // Use the PColumns exposed from the PFrame
@@ -32,10 +32,11 @@ const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] | null => 
   // - Weighted: includes both "pl7.app/vdj/cdr3Spectratype/type": "weighted" AND "pl7.app/abundance/unit"
   // - Unweighted: only includes "pl7.app/vdj/cdr3Spectratype/type": "unweighted"
   // Domain must match exactly.
-  const targetType = app.model.ui.weightedFlag ? 'weighted' : 'unweighted';
-  const mainCol = spectratypePcols.find((pcol) =>
-    pcol.spec.name === 'pl7.app/vdj/vSpectratype'
-    && pcol.spec.domain?.['pl7.app/vdj/cdr3Spectratype/type'] === targetType,
+  const targetType = app.model.ui.weightedFlag ? "weighted" : "unweighted";
+  const mainCol = spectratypePcols.find(
+    (pcol) =>
+      pcol.spec.name === "pl7.app/vdj/vSpectratype" &&
+      pcol.spec.domain?.["pl7.app/vdj/cdr3Spectratype/type"] === targetType,
   );
 
   if (!mainCol) return null;
@@ -45,23 +46,23 @@ const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] | null => 
 
   return [
     {
-      inputName: 'valueSize',
+      inputName: "valueSize",
       selectedSource: mainCol.spec,
     },
     {
-      inputName: 'valueColor',
+      inputName: "valueColor",
       selectedSource: mainCol.spec,
     },
     {
-      inputName: 'x',
+      inputName: "x",
       selectedSource: mainCol.spec.axesSpec[2],
     },
     {
-      inputName: 'y',
+      inputName: "y",
       selectedSource: mainCol.spec.axesSpec[1],
     },
     {
-      inputName: 'tabBy',
+      inputName: "tabBy",
       selectedSource: mainCol.spec.axesSpec[0],
     },
   ];
@@ -69,15 +70,14 @@ const defaultOptions = computed((): PredefinedGraphOption<'bubble'>[] | null => 
 
 const weightOptions = [
   {
-    label: 'Weighted',
+    label: "Weighted",
     value: true,
   },
   {
-    label: 'Unweighted',
+    label: "Unweighted",
     value: false,
   },
 ];
-
 </script>
 
 <template>
@@ -90,7 +90,7 @@ const weightOptions = [
     :status-text="{ noPframe: { title: strings.callToActions.configureSettingsAndRun } }"
   >
     <template #titleLineSlot>
-      <PlBtnGroup v-model="app.model.ui.weightedFlag" :options="weightOptions"/>
+      <PlBtnGroup v-model="app.model.ui.weightedFlag" :options="weightOptions" />
     </template>
     <template #settingsSlot>
       <Settings />

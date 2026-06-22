@@ -1,6 +1,6 @@
 export function getDefaultBlockLabel(data: {
   datasetLabel?: string;
-  lengthType?: 'aminoacid' | 'nucleotide';
+  lengthType?: "aminoacid" | "nucleotide";
   isSingleCell: boolean;
   chainLabel?: string;
 }) {
@@ -12,10 +12,10 @@ export function getDefaultBlockLabel(data: {
   }
 
   // Add length type
-  if (data.lengthType === 'aminoacid') {
-    parts.push('Amino acid');
-  } else if (data.lengthType === 'nucleotide') {
-    parts.push('Nucleotide');
+  if (data.lengthType === "aminoacid") {
+    parts.push("Amino acid");
+  } else if (data.lengthType === "nucleotide") {
+    parts.push("Nucleotide");
   }
 
   // Add chain info for single-cell datasets
@@ -23,5 +23,5 @@ export function getDefaultBlockLabel(data: {
     parts.push(data.chainLabel);
   }
 
-  return parts.join(' - ');
+  return parts.join(" - ");
 }
