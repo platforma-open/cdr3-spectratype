@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import type { PlRef } from '@platforma-sdk/model';
-import { PlBtnGroup, PlDropdownRef, PlTextField } from '@platforma-sdk/ui-vue';
-import { computed } from 'vue';
-import { useApp } from '../app';
-import { lengthTypeOptions, useIsSingleCell, useScChainOptions } from '../utils';
+import { PlBtnGroup, PlDropdownRef, PlTextField } from "@platforma-sdk/ui-vue";
+import { computed } from "vue";
+import { useApp } from "../app";
+import { lengthTypeOptions, useIsSingleCell, useScChainOptions } from "../utils";
 
 const app = useApp();
-
-function setInput(inputRef?: PlRef) {
-  app.model.args.datasetRef = inputRef;
-}
 
 const isSingleCell = useIsSingleCell(computed(() => app.model.outputs.datasetSpec));
 const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datasetSpec));
@@ -17,30 +12,29 @@ const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datase
 
 <template>
   <PlDropdownRef
-    v-model="app.model.args.datasetRef"
+    v-model="app.model.data.datasetRef"
     :options="app.model.outputs.datasetOptions"
     label="Select dataset"
     required
     clearable
-    @update:model-value="setInput"
   />
 
   <PlTextField
-    v-model="app.model.args.customBlockLabel"
+    v-model="app.model.data.customBlockLabel"
     label="Block title"
     :clearable="true"
-    :placeholder="app.model.args.defaultBlockLabel"
+    :placeholder="app.model.data.defaultBlockLabel"
   />
 
   <PlBtnGroup
-    v-model="app.model.args.lengthType"
+    v-model="app.model.data.lengthType"
     :options="lengthTypeOptions"
     label="Length type"
   />
 
   <PlBtnGroup
     v-if="isSingleCell"
-    v-model="app.model.args.scChain"
+    v-model="app.model.data.scChain"
     :options="scChainOptions ?? []"
     label="Chain"
   />
