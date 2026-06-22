@@ -11,8 +11,6 @@ import VStackedBarPlot from "./pages/VStackedBarPlot.vue";
 import { useIsSingleCell, useScChainOptions } from "./utils";
 
 export const sdkPlugin = defineAppV3(platforma, (app) => {
-  app.model.data.customBlockLabel ??= "";
-
   syncDefaultBlockLabel(app.model);
 
   return {

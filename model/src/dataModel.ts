@@ -35,17 +35,19 @@ export const blockDataModel = new DataModelBuilder()
   .from<BlockData>("v1")
   // V1 split analysis params + block labels across `args`; the three plot states
   // and `weightedFlag` lived under `uiState`. Fold both into unified `data`.
-  .upgradeLegacy<LegacyBlockArgs, LegacyUiState>(({ args, uiState }) => ({
-    datasetRef: args?.datasetRef,
-    lengthType: args?.lengthType ?? "aminoacid",
-    scChain: args?.scChain ?? "A",
-    defaultBlockLabel:
-      args?.defaultBlockLabel ??
-      getDefaultBlockLabel({ lengthType: "aminoacid", isSingleCell: false }),
-    customBlockLabel: args?.customBlockLabel ?? "",
-    weightedFlag: uiState?.weightedFlag ?? true,
-    bubblePlotState: uiState?.bubblePlotState ?? defaultBubble(),
-    vStackedBarPlotState: uiState?.vStackedBarPlotState ?? defaultVStacked(),
-    cdr3StackedBarPlotState: uiState?.cdr3StackedBarPlotState ?? defaultCdr3(),
-  }))
+  .upgradeLegacy<LegacyBlockArgs, LegacyUiState>(({ args, uiState }) => {
+    const lengthType = args?.lengthType ?? "aminoacid";
+    return {
+      datasetRef: args?.datasetRef,
+      lengthType,
+      scChain: args?.scChain ?? "A",
+      defaultBlockLabel:
+        args?.defaultBlockLabel ?? getDefaultBlockLabel({ lengthType, isSingleCell: false }),
+      customBlockLabel: args?.customBlockLabel ?? "",
+      weightedFlag: uiState?.weightedFlag ?? true,
+      bubblePlotState: uiState?.bubblePlotState ?? defaultBubble(),
+      vStackedBarPlotState: uiState?.vStackedBarPlotState ?? defaultVStacked(),
+      cdr3StackedBarPlotState: uiState?.cdr3StackedBarPlotState ?? defaultCdr3(),
+    };
+  })
   .init(initData);

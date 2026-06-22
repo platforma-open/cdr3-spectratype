@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import type { PlRef } from "@platforma-sdk/model";
 import { PlBtnGroup, PlDropdownRef, PlTextField } from "@platforma-sdk/ui-vue";
 import { computed } from "vue";
 import { useApp } from "../app";
 import { lengthTypeOptions, useIsSingleCell, useScChainOptions } from "../utils";
 
 const app = useApp();
-
-function setInput(inputRef?: PlRef) {
-  app.model.data.datasetRef = inputRef;
-}
 
 const isSingleCell = useIsSingleCell(computed(() => app.model.outputs.datasetSpec));
 const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datasetSpec));
@@ -22,7 +17,6 @@ const scChainOptions = useScChainOptions(computed(() => app.model.outputs.datase
     label="Select dataset"
     required
     clearable
-    @update:model-value="setInput"
   />
 
   <PlTextField
