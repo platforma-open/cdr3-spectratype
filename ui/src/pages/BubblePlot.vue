@@ -16,7 +16,7 @@ watch(
     // Close settings when block starts running (false -> true transition)
     if (isRunning && !wasRunning) {
       // Close the settings tab by setting currentTab to null
-      app.model.ui.bubblePlotState.currentTab = null;
+      app.model.data.bubblePlotState.currentTab = null;
     }
   },
 );
@@ -32,7 +32,7 @@ const defaultOptions = computed((): PredefinedGraphOption<"bubble">[] | null => 
   // - Weighted: includes both "pl7.app/vdj/cdr3Spectratype/type": "weighted" AND "pl7.app/abundance/unit"
   // - Unweighted: only includes "pl7.app/vdj/cdr3Spectratype/type": "unweighted"
   // Domain must match exactly.
-  const targetType = app.model.ui.weightedFlag ? "weighted" : "unweighted";
+  const targetType = app.model.data.weightedFlag ? "weighted" : "unweighted";
   const mainCol = spectratypePcols.find(
     (pcol) =>
       pcol.spec.name === "pl7.app/vdj/vSpectratype" &&
@@ -82,7 +82,7 @@ const weightOptions = [
 
 <template>
   <GraphMaker
-    v-model="app.model.ui.bubblePlotState"
+    v-model="app.model.data.bubblePlotState"
     chart-type="bubble"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
@@ -90,7 +90,7 @@ const weightOptions = [
     :status-text="{ noPframe: { title: strings.callToActions.configureSettingsAndRun } }"
   >
     <template #titleLineSlot>
-      <PlBtnGroup v-model="app.model.ui.weightedFlag" :options="weightOptions" />
+      <PlBtnGroup v-model="app.model.data.weightedFlag" :options="weightOptions" />
     </template>
     <template #settingsSlot>
       <Settings />

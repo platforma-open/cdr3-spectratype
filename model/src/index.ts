@@ -1,60 +1,21 @@
-import type { GraphMakerState } from "@milaboratories/graph-maker";
-import type { InferOutputsType, PColumnIdAndSpec, PlRef } from "@platforma-sdk/model";
-import { BlockModel } from "@platforma-sdk/model";
-import { getDefaultBlockLabel } from "./label";
+import type { InferOutputsType, PColumnIdAndSpec } from "@platforma-sdk/model";
+import { BlockModelV3 } from "@platforma-sdk/model";
+import { blockDataModel } from "./dataModel";
+import type { BlockArgs } from "./types";
 
-export type BlockArgs = {
-  defaultBlockLabel: string;
-  customBlockLabel: string;
-  datasetRef?: PlRef;
-  lengthType: "aminoacid" | "nucleotide";
-  scChain: "A" | "B";
-};
+export { getDefaultBlockLabel } from "./label";
+export { blockDataModel } from "./dataModel";
+export * from "./types";
 
-export type UiState = {
-  bubblePlotState: GraphMakerState;
-  weightedFlag: boolean;
-  vStackedBarPlotState: GraphMakerState;
-  cdr3StackedBarPlotState: GraphMakerState;
-};
-
-export const model = BlockModel.create()
-
-  .withArgs<BlockArgs>({
-    defaultBlockLabel: getDefaultBlockLabel({
-      lengthType: "aminoacid",
-      isSingleCell: false,
-    }),
-    customBlockLabel: "",
-    lengthType: "aminoacid",
-    scChain: "A",
-  })
-
-  .withUiState<UiState>({
-    bubblePlotState: {
-      title: "CDR3 V Spectratype",
-      template: "bubble",
-      currentTab: "settings",
-    },
-    weightedFlag: true,
-    vStackedBarPlotState: {
-      title: "CDR3 V Spectratype",
-      template: "stackedBar",
-      currentTab: null,
-    },
-    cdr3StackedBarPlotState: {
-      title: "CDR3 Spectratype",
-      template: "stackedBar",
-      currentTab: null,
-    },
-  })
-
-  .argsValid((ctx) => {
-    return (
-      ctx.args.datasetRef !== undefined &&
-      ctx.args.lengthType !== undefined &&
-      ctx.args.scChain !== undefined
-    );
+export const platforma = BlockModelV3.create(blockDataModel)
+  .args<BlockArgs>((data) => {
+    if (data.datasetRef === undefined) throw new Error("Dataset is required");
+    return {
+      datasetRef: data.datasetRef,
+      lengthType: data.lengthType,
+      scChain: data.scChain,
+      customBlockLabel: data.customBlockLabel,
+    };
   })
 
   .output("datasetOptions", (ctx) =>
@@ -76,10 +37,10 @@ export const model = BlockModel.create()
   )
 
   .output("datasetSpec", (ctx) => {
-    if (ctx.args.datasetRef === undefined) {
+    if (ctx.data.datasetRef === undefined) {
       return undefined;
     }
-    return ctx.resultPool.getPColumnSpecByRef(ctx.args.datasetRef);
+    return ctx.resultPool.getPColumnSpecByRef(ctx.data.datasetRef);
   })
 
   .outputWithStatus("pf", (ctx) => {
@@ -95,7 +56,7 @@ export const model = BlockModel.create()
     // the result pool anchored to this dataset (e.g. sample groups, patient IDs
     // added in an upstream samples & data block) for use in graph-maker.
     // Exclude pl7.app/label since the workflow already provides a dataset-scoped version.
-    const datasetRef = ctx.args.datasetRef;
+    const datasetRef = ctx.data.datasetRef;
     const anchoredMeta =
       datasetRef !== undefined
         ? (
@@ -128,16 +89,15 @@ export const model = BlockModel.create()
 
   .title(() => "CDR3 Spectratype")
 
-  .subtitle((ctx) => ctx.args.customBlockLabel || ctx.args.defaultBlockLabel)
+  .subtitle((ctx) => ctx.data.customBlockLabel || ctx.data.defaultBlockLabel)
 
-  .sections((_) => [
-    { type: "link", href: "/", label: "Bubble Plot" },
-    { type: "link", href: "/vStackedBarPlot", label: "V Spectratype" },
-    { type: "link", href: "/cdr3StackedBarPlot", label: "CDR3 Spectratype" },
+  .sections(() => [
+    { type: "link" as const, href: "/" as const, label: "Bubble Plot" },
+    { type: "link" as const, href: "/vStackedBarPlot" as const, label: "V Spectratype" },
+    { type: "link" as const, href: "/cdr3StackedBarPlot" as const, label: "CDR3 Spectratype" },
   ])
 
-  .done(2);
+  .done();
 
-export type BlockOutputs = InferOutputsType<typeof model>;
-
-export { getDefaultBlockLabel } from "./label";
+export type Platforma = typeof platforma;
+export type BlockOutputs = InferOutputsType<typeof platforma>;

@@ -14,7 +14,7 @@ const defaultOptions = computed((): PredefinedGraphOption<"discrete">[] | null =
   const spectratypePcols = app.model.outputs.pfPcols;
 
   // Find the correct spectratype PColumn based on the weighted flag
-  const targetType = app.model.ui.weightedFlag ? "weighted" : "unweighted";
+  const targetType = app.model.data.weightedFlag ? "weighted" : "unweighted";
   const mainCol = spectratypePcols.find(
     (pcol) =>
       pcol.spec.name === "pl7.app/vdj/cdr3Spectratype" &&
@@ -57,7 +57,7 @@ const weightOptions = [
 
 <template>
   <GraphMaker
-    v-model="app.model.ui.cdr3StackedBarPlotState"
+    v-model="app.model.data.cdr3StackedBarPlotState"
     chart-type="discrete"
     :p-frame="app.model.outputs.pf"
     :default-options="defaultOptions"
@@ -65,7 +65,7 @@ const weightOptions = [
     :status-text="{ noPframe: { title: strings.callToActions.configureSettingsAndRun } }"
   >
     <template #titleLineSlot>
-      <PlBtnGroup v-model="app.model.ui.weightedFlag" :options="weightOptions" />
+      <PlBtnGroup v-model="app.model.data.weightedFlag" :options="weightOptions" />
     </template>
   </GraphMaker>
 </template>
