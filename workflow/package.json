@@ -1,6 +1,6 @@
 {
   "name": "@platforma-open/milaboratories.cdr3-spectratype.workflow",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "description": "Tengo-based template",
   "type": "module",
   "scripts": {
