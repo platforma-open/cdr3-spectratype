@@ -3,8 +3,8 @@ import { BlockModelV3 } from "@platforma-sdk/model";
 import { blockDataModel } from "./dataModel";
 import type { BlockArgs } from "./types";
 
-export { getDefaultBlockLabel } from "./label";
 export { blockDataModel } from "./dataModel";
+export { getDefaultBlockLabel } from "./label";
 export * from "./types";
 
 export const platforma = BlockModelV3.create(blockDataModel)
@@ -41,6 +41,43 @@ export const platforma = BlockModelV3.create(blockDataModel)
       return undefined;
     }
     return ctx.resultPool.getPColumnSpecByRef(ctx.data.datasetRef);
+  })
+
+  // Single-cell IG chain letters ("A" = heavy, "B" = light) that actually have columns
+  // for the selected dataset. Returns undefined — meaning "don't filter" — for bulk
+  // data, non-IG receptors, and while the pool is resolving.
+  .output("availableScChains", (ctx) => {
+    const ref = ctx.data.datasetRef;
+    if (ref === undefined) return undefined;
+
+    const spec = ctx.resultPool.getPColumnSpecByRef(ref);
+    // Only single-cell IG can be single-chain (heavy-only VHH): bulk has no chain axis,
+    // and single-cell TCR is always paired — nothing to filter in those cases.
+    if (spec?.axesSpec[1]?.name !== "pl7.app/vdj/scClonotypeKey") return undefined;
+    if (spec.axesSpec[1]?.domain?.["pl7.app/vdj/receptor"] !== "IG") return undefined;
+
+    // Ask for just the V-gene-hit column per chain
+    const vGeneCols = ctx.resultPool.getAnchoredPColumns(
+      { main: ref },
+      [
+        {
+          axes: [{ anchor: "main", idx: 1 }],
+          name: "pl7.app/vdj/geneHit",
+          domain: { "pl7.app/vdj/reference": "VGene" },
+        },
+      ],
+      { ignoreMissingDomains: true },
+    );
+    if (vGeneCols === undefined) return undefined; // pool still resolving
+
+    const chains = new Set<string>();
+    for (const col of vGeneCols) {
+      const domain = col.spec.domain;
+      if (domain?.["pl7.app/vdj/scClonotypeChain/index"] !== "primary") continue;
+      const letter = domain?.["pl7.app/vdj/scClonotypeChain"];
+      if (letter) chains.add(letter);
+    }
+    return [...chains].sort();
   })
 
   .outputWithStatus("pf", (ctx) => {
