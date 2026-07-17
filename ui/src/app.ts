@@ -4,7 +4,7 @@ import {
   platforma,
 } from "@platforma-open/milaboratories.cdr3-spectratype.model";
 import { defineAppV3 } from "@platforma-sdk/ui-vue";
-import { computed, watchEffect } from "vue";
+import { computed, watch, watchEffect } from "vue";
 import BubblePlot from "./pages/BubblePlot.vue";
 import CDR3StackedBarPlot from "./pages/CDR3StackedBarPlot.vue";
 import VStackedBarPlot from "./pages/VStackedBarPlot.vue";
@@ -28,7 +28,10 @@ type AppModel = ReturnType<typeof useApp>["model"];
 
 function syncDefaultBlockLabel(model: AppModel) {
   const isSingleCell = useIsSingleCell(() => model.outputs.datasetSpec);
-  const scChainOptions = useScChainOptions(() => model.outputs.datasetSpec);
+  const scChainOptions = useScChainOptions(
+    () => model.outputs.datasetSpec,
+    () => model.outputs.availableScChains,
+  );
 
   const datasetLabel = computed(() => {
     if (!model.data.datasetRef) return;
@@ -54,4 +57,19 @@ function syncDefaultBlockLabel(model: AppModel) {
       chainLabel: chainLabel.value,
     });
   });
+
+  // Keep scChain valid: if the persisted chain isn't among the chains that actually
+  // have columns, reset it to the first available one. Covers switching a block from a
+  // paired IG dataset (Light picked) to a heavy-only VHH one, where the selector then
+  // hides and can no longer be corrected by hand.
+  watch(
+    [isSingleCell, scChainOptions],
+    ([isSc, opts]) => {
+      if (!isSc || !opts || opts.length === 0) return;
+      if (!opts.some((o) => o.value === model.data.scChain)) {
+        model.data.scChain = opts[0].value;
+      }
+    },
+    { immediate: true },
+  );
 }
