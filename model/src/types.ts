@@ -2,6 +2,7 @@ import type { GraphMakerState } from "@milaboratories/graph-maker";
 import type { PlRef } from "@platforma-sdk/model";
 
 export type LengthType = "aminoacid" | "nucleotide";
+/** `pl7.app/vdj/scClonotypeChain` domain letter: "A" is Heavy/Beta/Delta, "B" is Light/Alpha/Gamma. */
 export type ScChain = "A" | "B";
 
 /**

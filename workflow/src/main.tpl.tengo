@@ -16,6 +16,13 @@ filter := func(arr, predicate) {
 	return filtered
 }
 
+// pl7.app/vdj/scClonotypeChain domain letter -> chain name, per receptor.
+scChainNames := {
+	"IG":    { "A": "Heavy", "B": "Light" },
+	"TCRAB": { "A": "Beta",  "B": "Alpha" },
+	"TCRGD": { "A": "Delta", "B": "Gamma" }
+}
+
 /**
 	Returns a spec for the given type of spectratype.
 	
@@ -25,12 +32,12 @@ filter := func(arr, predicate) {
 		vGeneSpec: The spec for the vGene column.
 		cdr3Spec: The spec for the cdr3Length column.
 		lengthType: The type of sequence used as input.
-		scChain: The chain (only when processing single cell data).
+		chainName: The chain name (only when processing single cell data).
 	
 	Returns:
 		A spec for the given type of spectratype.
 */
-getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec, lengthType, scChain) {
+getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec, lengthType, chainName) {
 	if type != "v" && type != "cdr3" {
 		ll.panic("Invalid type: " + type)
 	}
@@ -44,8 +51,8 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec, lengthType, scChain) 
 		if lengthType != undefined {
 			label = label + " (" + lengthType + ")"
 		}
-		if scChain != undefined {
-			label = label + " " + scChain
+		if chainName != undefined {
+			label = label + " " + chainName
 		}
 		secondAxis = {
 			column: "vGene",
@@ -63,8 +70,8 @@ getSpecs := func(type, abundanceSpec, vGeneSpec, cdr3Spec, lengthType, scChain) 
 		if lengthType != undefined {
 			label = label + " (" + lengthType + ")"
 		}
-		if scChain != undefined {
-			label = label + " " + scChain
+		if chainName != undefined {
+			label = label + " " + chainName
 		}
 		secondAxis = {
 			column: "CDR3",
@@ -186,24 +193,14 @@ wf.body(func(args) {
 
 	cdr3Col := undefined
 	vGeneCol := undefined
+	chainName := undefined
 	if isSingleCell {
-		// Map UI chain value to domain chain value based on receptor type
-		// For TCRAB and TCRGD, the domain mapping is reversed from the UI mapping
-		// UI: Alpha/Gamma -> "A", Beta/Delta -> "B"
-		// Domain: For TCRAB: "A" = Beta, "B" = Alpha; For TCRGD: "A" = Delta, "B" = Gamma
 		receptor := datasetSpec.axesSpec[1].domain["pl7.app/vdj/receptor"]
-		domainChain := args.scChain
-		if receptor == "TCRAB" || receptor == "TCRGD" {
-			// Swap A and B for TCR receptors
-			if args.scChain == "A" {
-				domainChain = "B"
-			} else if args.scChain == "B" {
-				domainChain = "A"
-			}
-		}
-		
+		namesByLetter := scChainNames[receptor]
+		chainName = namesByLetter != undefined ? namesByLetter[args.scChain] : args.scChain
+
 		predicate := func(col) {
-			return col.spec.domain["pl7.app/vdj/scClonotypeChain"] == domainChain && col.spec.domain["pl7.app/vdj/scClonotypeChain/index"] == "primary"
+			return col.spec.domain["pl7.app/vdj/scClonotypeChain"] == args.scChain && col.spec.domain["pl7.app/vdj/scClonotypeChain/index"] == "primary"
 		}
 		cdr3Cols := filter(columns.getColumns("cdr3"), predicate)
 		ll.assert(len(cdr3Cols) == 1, "expected exactly 1 CDR3 column for chain, got %d", len(cdr3Cols))
@@ -348,14 +345,14 @@ wf.body(func(args) {
 	vSpectratypeResult := xsv.importFile(
 		ptResult.getFile("vSpectratype.result.tsv"),
 		"tsv",
-		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
+		getSpecs("v", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, chainName),
 		{splitDataAndSpec: true}
 	)
 
 	cdr3SpectratypeResult := xsv.importFile(
 		ptResult.getFile("cdr3Spectratype.result.tsv"),
 		"tsv",
-		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, isSingleCell ? args.scChain : undefined),
+		getSpecs("cdr3", abundanceSpec, vGeneSpec, cdr3LengthSpec, args.lengthType, chainName),
 		{splitDataAndSpec: true}
 	)
 
