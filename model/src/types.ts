@@ -30,7 +30,7 @@ export type BlockData = {
 export type BlockArgs = {
   datasetRef: PlRef;
   lengthType: LengthType;
-  scChain: ScChain;
+  scClonotypeChain: ScChain;
   customBlockLabel: string;
 };
 

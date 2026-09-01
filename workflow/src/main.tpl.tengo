@@ -197,10 +197,10 @@ wf.body(func(args) {
 	if isSingleCell {
 		receptor := datasetSpec.axesSpec[1].domain["pl7.app/vdj/receptor"]
 		namesByLetter := scChainNames[receptor]
-		chainName = namesByLetter != undefined ? namesByLetter[args.scChain] : args.scChain
+		chainName = namesByLetter != undefined ? namesByLetter[args.scClonotypeChain] : args.scClonotypeChain
 
 		predicate := func(col) {
-			return col.spec.domain["pl7.app/vdj/scClonotypeChain"] == args.scChain && col.spec.domain["pl7.app/vdj/scClonotypeChain/index"] == "primary"
+			return col.spec.domain["pl7.app/vdj/scClonotypeChain"] == args.scClonotypeChain && col.spec.domain["pl7.app/vdj/scClonotypeChain/index"] == "primary"
 		}
 		cdr3Cols := filter(columns.getColumns("cdr3"), predicate)
 		ll.assert(len(cdr3Cols) == 1, "expected exactly 1 CDR3 column for chain, got %d", len(cdr3Cols))
