@@ -37,6 +37,7 @@ export function useScChainOptions(
 
     const receptor = axisSpec.domain?.["pl7.app/vdj/receptor"];
 
+    // Listed in classic biological order; values are domain letters, so TCR pairs read B, A.
     let options: { label: string; value: ScChain }[];
     switch (receptor) {
       case "IG":
@@ -47,14 +48,14 @@ export function useScChainOptions(
         break;
       case "TCRAB":
         options = [
-          { label: "Alpha", value: "A" },
-          { label: "Beta", value: "B" },
+          { label: "Alpha", value: "B" },
+          { label: "Beta", value: "A" },
         ];
         break;
       case "TCRGD":
         options = [
-          { label: "Gamma", value: "A" },
-          { label: "Delta", value: "B" },
+          { label: "Gamma", value: "B" },
+          { label: "Delta", value: "A" },
         ];
         break;
       default:

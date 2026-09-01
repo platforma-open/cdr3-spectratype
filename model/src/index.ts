@@ -13,7 +13,7 @@ export const platforma = BlockModelV3.create(blockDataModel)
     return {
       datasetRef: data.datasetRef,
       lengthType: data.lengthType,
-      scChain: data.scChain,
+      scClonotypeChain: data.scChain,
       customBlockLabel: data.customBlockLabel,
     };
   })
