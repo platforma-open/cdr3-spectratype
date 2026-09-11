@@ -1,8 +1,10 @@
 import type { GraphMakerState } from "@milaboratories/graph-maker";
 import type { PlRef } from "@platforma-sdk/model";
+// The length alphabet and the chain letter live in the kind: its init-params contract
+// names them, and a kind cannot import from the model.
+import type { LengthType, ScChain } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 
-export type LengthType = "aminoacid" | "nucleotide";
-export type ScChain = "A" | "B";
+export type * from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 
 /**
  * Unified V3 data — the UI's persisted state. The three plot states,

@@ -1,13 +1,16 @@
 import type { InferOutputsType, PColumnIdAndSpec } from "@platforma-sdk/model";
 import { BlockModelV3 } from "@platforma-sdk/model";
+import { kind } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 import { blockDataModel } from "./dataModel";
+import { deriveTemplateParams } from "./templateParams";
 import type { BlockArgs } from "./types";
 
-export { blockDataModel } from "./dataModel";
+export { blockDataModel, initBlockData } from "./dataModel";
+export { deriveTemplateParams } from "./templateParams";
 export { getDefaultBlockLabel } from "./label";
 export * from "./types";
 
-export const platforma = BlockModelV3.create(blockDataModel)
+export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind })
   .args<BlockArgs>((data) => {
     if (data.datasetRef === undefined) throw new Error("Dataset is required");
     return {
@@ -17,6 +20,8 @@ export const platforma = BlockModelV3.create(blockDataModel)
       customBlockLabel: data.customBlockLabel,
     };
   })
+
+  .templateParams(deriveTemplateParams)
 
   .output("datasetOptions", (ctx) =>
     ctx.resultPool.getOptions(
