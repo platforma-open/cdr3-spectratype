@@ -1,43 +1,40 @@
 import { assertParamsObject, defineBlockKind } from "@platforma-sdk/block-kind";
+import type { PlRef } from "@platforma-sdk/model";
+import { isPlRef } from "@platforma-sdk/model";
 import { name, version } from "../package.json" with { type: "json" };
 
-/**
- * This block's init-params contract — the shape a block of this kind receives
- * at creation, and exactly what a project template serializes for it.
- *
- * TODO(block-kind): replace `NEEDS_BLOCK_PARAMS` with the real params shape, then
- * wire the model's `init(({ params }) => …)` to consume them. If this block takes
- * no author-supplied params, set it to `Record<string, never>` deliberately.
- *
- * This is an intentional sentinel: `NEEDS_BLOCK_PARAMS` is an undefined type, so
- * the block fails to typecheck (TS2304) until the contract is chosen on purpose.
- * A scaffolded-but-unmigrated block must never compile with an empty contract by
- * default — see the block-kind migration recipe in the `block-dev` skill.
- */
-export type BlockParams = NEEDS_BLOCK_PARAMS;
+/** Whether CDR3 lengths are counted in amino acids or in nucleotides. */
+export type LengthType = "aminoacid" | "nucleotide";
+
+/** Which chain of a paired single-cell dataset is profiled. "A" is heavy/alpha, "B" light/beta. */
+export type ScChain = "A" | "B";
 
 /**
- * The same contract at runtime, for params that arrive from a template file rather than
- * from typed code — the only point that can catch a hand-written entry being wrong.
+ * This block's init-params contract — everything a user sets by hand: the dataset
+ * to profile, the length alphabet, the chain to read on single-cell data, whether
+ * the plots weight each clonotype by its abundance, and the subtitle they type.
  *
- * TODO(block-kind): read each key `BlockParams` declares and say what it must be, then
- * return them. Plain TypeScript is the default here: a kind owes no schema library, and a
- * check written by hand is held to the contract by the return type. Reach for a validation
- * library only where the shape earns it, and add it to this package's dependencies yourself.
+ * `defaultBlockLabel` is absent: a `watchEffect` in `ui/src/app.ts` builds it from
+ * the dataset's option label and the chain's option label, neither of which exists
+ * before the result pool has resolved the chosen dataset.
  *
- * Check the fields the contract requires, and stop there. A key the contract does not name
- * needs no rejection: it is dropped by not being read.
+ * The three plot states are absent too. They are graph-maker's own view state —
+ * axis picks, zoom, which tab is open — written by the plotting component rather
+ * than by the scientist, and a template that pinned them would be pinning a
+ * camera position rather than an analysis.
  *
- * This is a second intentional sentinel. The function has to return `BlockParams`, so
- * `return {}` stops compiling the moment the contract declares a required field — the check
- * cannot drift from the contract by being left behind. Never satisfy it with a cast: `value
- * as BlockParams` compiles today and checks nothing forever.
+ * Every field is optional. A block with no dataset picked is the state a fresh
+ * block is in, and it stays that way until the user chooses one; the projection
+ * hands that state back untouched, so a required field would break the
+ * export/apply round trip.
  */
-function parseInitializationParams(value: unknown): BlockParams {
-  assertParamsObject(value);
-
-  return {};
-}
+export type BlockParams = {
+  datasetRef?: PlRef;
+  lengthType?: LengthType;
+  scChain?: ScChain;
+  weightedFlag?: boolean;
+  customBlockLabel?: string;
+};
 
 // Identity (`name`/`version`) comes from this package's own `package.json`, so
 // the on-wire `{name}@{version}` reference can never drift from what npm
@@ -47,3 +44,45 @@ export const kind = defineBlockKind<BlockParams>({
   version,
   parseInitializationParams,
 });
+
+// Internals
+
+const LENGTH_TYPES: readonly string[] = ["aminoacid", "nucleotide"];
+const SC_CHAINS: readonly string[] = ["A", "B"];
+
+/** The same contract at runtime, for params arriving from a template file rather than typed code. */
+function parseInitializationParams(value: unknown): BlockParams {
+  assertParamsObject(value);
+
+  const { datasetRef, lengthType, scChain, weightedFlag, customBlockLabel } = value;
+
+  if (datasetRef !== undefined && !isPlRef(datasetRef)) {
+    throw new Error(
+      "'datasetRef' must be a reference to an upstream dataset, written as { block, name }.",
+    );
+  }
+  if (lengthType !== undefined && !LENGTH_TYPES.includes(lengthType as string)) {
+    throw new Error(`'lengthType' must be one of: ${LENGTH_TYPES.join(", ")}.`);
+  }
+  // Checked as an envelope, not against the dataset: whether a chain letter means
+  // anything depends on the dataset being single-cell, which is only known once the
+  // result pool has resolved it. A bulk dataset simply ignores the value, and the
+  // UI hides the selector rather than clearing it.
+  if (scChain !== undefined && !SC_CHAINS.includes(scChain as string)) {
+    throw new Error(`'scChain' must be one of: ${SC_CHAINS.join(", ")}.`);
+  }
+  if (weightedFlag !== undefined && typeof weightedFlag !== "boolean") {
+    throw new Error("'weightedFlag' must be a boolean.");
+  }
+  if (customBlockLabel !== undefined && typeof customBlockLabel !== "string") {
+    throw new Error("'customBlockLabel' must be a string.");
+  }
+
+  return {
+    datasetRef,
+    lengthType: lengthType as LengthType | undefined,
+    scChain: scChain as ScChain | undefined,
+    weightedFlag,
+    customBlockLabel,
+  };
+}

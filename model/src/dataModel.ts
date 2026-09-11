@@ -1,7 +1,8 @@
 import type { GraphMakerState } from "@milaboratories/graph-maker";
 import { DataModelBuilder } from "@platforma-sdk/model";
+import { kind } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 import { getDefaultBlockLabel } from "./label";
-import type { BlockData, LegacyBlockArgs, LegacyUiState } from "./types";
+import type { BlockData, BlockParams, LegacyBlockArgs, LegacyUiState } from "./types";
 
 const defaultBubble = (): GraphMakerState => ({
   title: "CDR3 V Spectratype",
@@ -19,19 +20,25 @@ const defaultCdr3 = (): GraphMakerState => ({
   currentTab: null,
 });
 
-const initData = (): BlockData => ({
-  datasetRef: undefined,
-  lengthType: "aminoacid",
-  scChain: "A",
-  defaultBlockLabel: getDefaultBlockLabel({ lengthType: "aminoacid", isSingleCell: false }),
-  customBlockLabel: "",
-  weightedFlag: true,
-  bubblePlotState: defaultBubble(),
-  vStackedBarPlotState: defaultVStacked(),
-  cdr3StackedBarPlotState: defaultCdr3(),
-});
+const initData = ({ params }: { params?: BlockParams }): BlockData => {
+  const lengthType = params?.lengthType ?? "aminoacid";
+  return {
+    datasetRef: params?.datasetRef,
+    lengthType,
+    scChain: params?.scChain ?? "A",
+    // The dataset's and the chain's human labels come from the result pool, which `init`
+    // cannot reach, so only the part computable from the params is filled in here. The
+    // watchEffect in ui/src/app.ts replaces it with the full label once the pool resolves.
+    defaultBlockLabel: getDefaultBlockLabel({ lengthType, isSingleCell: false }),
+    customBlockLabel: params?.customBlockLabel ?? "",
+    weightedFlag: params?.weightedFlag ?? true,
+    bubblePlotState: defaultBubble(),
+    vStackedBarPlotState: defaultVStacked(),
+    cdr3StackedBarPlotState: defaultCdr3(),
+  };
+};
 
-export const blockDataModel = new DataModelBuilder()
+export const blockDataModel = new DataModelBuilder({ kind })
   .from<BlockData>("v1")
   // V1 split analysis params + block labels across `args`; the three plot states
   // and `weightedFlag` lived under `uiState`. Fold both into unified `data`.
