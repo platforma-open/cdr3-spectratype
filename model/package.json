@@ -1,6 +1,7 @@
 {
   "name": "@platforma-open/milaboratories.cdr3-spectratype.model",
   "version": "4.3.1",
+  "private": true,
   "description": "Block model",
   "type": "module",
   "main": "dist/index.cjs",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@milaboratories/graph-maker": "catalog:",
+    "@platforma-open/milaboratories.cdr3-spectratype.kind": "workspace:*",
     "@platforma-sdk/model": "catalog:"
   },
   "devDependencies": {
