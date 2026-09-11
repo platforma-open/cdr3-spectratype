@@ -2,9 +2,11 @@ import type { InferOutputsType, PColumnIdAndSpec } from "@platforma-sdk/model";
 import { BlockModelV3 } from "@platforma-sdk/model";
 import { kind } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 import { blockDataModel } from "./dataModel";
+import { deriveTemplateParams } from "./templateParams";
 import type { BlockArgs } from "./types";
 
-export { blockDataModel } from "./dataModel";
+export { blockDataModel, initBlockData } from "./dataModel";
+export { deriveTemplateParams } from "./templateParams";
 export { getDefaultBlockLabel } from "./label";
 export * from "./types";
 
@@ -19,17 +21,7 @@ export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind }
     };
   })
 
-  // Inverse of the kind's init-params contract: every field a user sets by hand.
-  // `defaultBlockLabel` and the three plot states are not templated — the label is
-  // rebuilt from result-pool option labels by a watchEffect in ui/src/app.ts, and the
-  // plot states are graph-maker's own view state.
-  .templateParams((data) => ({
-    datasetRef: data.datasetRef,
-    lengthType: data.lengthType,
-    scChain: data.scChain,
-    weightedFlag: data.weightedFlag,
-    customBlockLabel: data.customBlockLabel,
-  }))
+  .templateParams(deriveTemplateParams)
 
   .output("datasetOptions", (ctx) =>
     ctx.resultPool.getOptions(
