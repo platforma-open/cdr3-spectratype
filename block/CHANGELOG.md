@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype
 
+## 3.2.0
+
+### Minor Changes
+
+- 82e7bc1: Add a block kind with an init-params contract, so the block can be created from a project template
+
 ## 3.1.1
 
 ### Patch Changes
