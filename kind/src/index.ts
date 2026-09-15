@@ -6,7 +6,7 @@ import { name, version } from "../package.json" with { type: "json" };
 /** Whether CDR3 lengths are counted in amino acids or in nucleotides. */
 export type LengthType = "aminoacid" | "nucleotide";
 
-/** Which chain of a paired single-cell dataset is profiled. "A" is heavy/alpha, "B" light/beta. */
+/** Which chain of a paired single-cell dataset is profiled. "A" is heavy/beta/delta, "B" light/alpha/gamma. */
 export type ScChain = "A" | "B";
 
 /**
