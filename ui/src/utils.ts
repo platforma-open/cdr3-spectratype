@@ -1,24 +1,12 @@
 import type { ScChain } from "@platforma-open/milaboratories.cdr3-spectratype.model";
 import type { PColumnSpec } from "@platforma-sdk/model";
 import type { MaybeRefOrGetter } from "vue";
-import { computed, toValue, type ComputedRef } from "vue";
+import { computed, toValue } from "vue";
 
 export const lengthTypeOptions = [
   { label: "Amino acid", value: "aminoacid" },
   { label: "Nucleotide", value: "nucleotide" },
 ] as const;
-
-export function useIsSingleCell(
-  datasetSpec: MaybeRefOrGetter<PColumnSpec | undefined>,
-): ComputedRef<boolean> {
-  return computed(() => {
-    const spec = toValue(datasetSpec);
-    if (!spec) {
-      return false;
-    }
-    return spec.axesSpec[1]?.name === "pl7.app/vdj/scClonotypeKey";
-  });
-}
 
 export function useScChainOptions(
   datasetSpec: MaybeRefOrGetter<PColumnSpec | undefined>,

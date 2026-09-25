@@ -189,7 +189,14 @@ wf.prepare(func(args) {
 wf.body(func(args) {
 	columns := args.columns
 	datasetSpec := columns.getSpec(args.datasetRef)
+	// Paired when chains share one frame. MiXCR single-cell says so on the axis name; an imported
+	// (variantKey) paired set says so only in the pl7.app/vdj/scClonotypeChain column domain.
 	isSingleCell := datasetSpec.axesSpec[1].name == "pl7.app/vdj/scClonotypeKey"
+	for col in columns.getColumns("cdr3") {
+		if col.spec.domain["pl7.app/vdj/scClonotypeChain"] != undefined {
+			isSingleCell = true
+		}
+	}
 
 	cdr3Col := undefined
 	vGeneCol := undefined
@@ -279,7 +286,13 @@ wf.body(func(args) {
 	)
 
 	// V Spectratype: group by Sample, vGene, cdr3Length and aggregate
+	// An imported (bare) set may leave the V gene blank on some records; MiXCR never does.
+	// Such a record still counts towards the CDR3 spectratype, but has no V bar to count towards.
 	vSpectratype := dfWithLength.
+		filter(
+			pt.col("vGene").isNotNull(),
+			pt.col("vGene").neq(pt.lit(""))
+		).
 		groupBy("Sample", "vGene", "cdr3Length").
 		agg(
 			pt.col("weight").count().alias("size"),

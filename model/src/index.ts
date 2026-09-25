@@ -1,7 +1,8 @@
 import type { InferOutputsType, PColumnIdAndSpec } from "@platforma-sdk/model";
-import { BlockModelV3 } from "@platforma-sdk/model";
+import { BlockModelV3, isPColumnSpec } from "@platforma-sdk/model";
 import { kind } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 import { blockDataModel } from "./dataModel";
+import { chainsWithGenes, isBareSetAxis, isDatasetSpec, isPairedDataset } from "./dataset";
 import { deriveTemplateParams } from "./templateParams";
 import type { BlockArgs } from "./types";
 
@@ -9,6 +10,9 @@ export { blockDataModel, initBlockData } from "./dataModel";
 export { deriveTemplateParams } from "./templateParams";
 export { getDefaultBlockLabel } from "./label";
 export * from "./types";
+
+/** The V spectratype groups by V gene, so a chain without one cannot be run. */
+const GENES = ["VGene"];
 
 export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind })
   .args<BlockArgs>((data) => {
@@ -23,22 +27,18 @@ export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind }
 
   .templateParams(deriveTemplateParams)
 
+  // MiXCR datasets always carry a V gene column; an imported (bare) set carries one only when
+  // the file mapped it, so one without a V gene on some chain is not offered at all.
   .output("datasetOptions", (ctx) =>
-    ctx.resultPool.getOptions(
-      [
-        {
-          axes: [{ name: "pl7.app/sampleId" }, { name: "pl7.app/vdj/clonotypeKey" }],
-          annotations: { "pl7.app/isAnchor": "true" },
-        },
-        {
-          axes: [{ name: "pl7.app/sampleId" }, { name: "pl7.app/vdj/scClonotypeKey" }],
-          annotations: { "pl7.app/isAnchor": "true" },
-        },
-      ],
-      {
-        includeNativeLabel: false,
-      },
-    ),
+    ctx.resultPool
+      .getOptions((spec) => isPColumnSpec(spec) && isDatasetSpec(spec), {
+        label: { includeNativeLabel: false },
+      })
+      .filter(
+        (option) =>
+          !isBareSetAxis(ctx.resultPool.getPColumnSpecByRef(option.ref)?.axesSpec[1]) ||
+          (chainsWithGenes(ctx.resultPool, option.ref, GENES)?.length ?? 0) > 0,
+      ),
   )
 
   .output("datasetSpec", (ctx) => {
@@ -48,41 +48,47 @@ export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind }
     return ctx.resultPool.getPColumnSpecByRef(ctx.data.datasetRef);
   })
 
-  // Single-cell IG chain letters ("A" = heavy, "B" = light) that actually have columns
-  // for the selected dataset. Returns undefined — meaning "don't filter" — for bulk
-  // data, non-IG receptors, and while the pool is resolving.
+  .output("isSingleCell", (ctx) => {
+    const ref = ctx.data.datasetRef;
+    if (ref === undefined) return undefined;
+    return isPairedDataset(ctx.resultPool, ref);
+  })
+
+  // Chain letters ("A" / "B") that actually have a V gene column for the selected paired
+  // dataset. Returns undefined — meaning "don't filter" — for unpaired data and while the pool
+  // is resolving. Heavy-only VHH and imported sets with genes mapped for one chain only are
+  // what this narrows.
   .output("availableScChains", (ctx) => {
     const ref = ctx.data.datasetRef;
     if (ref === undefined) return undefined;
+    if (!isPairedDataset(ctx.resultPool, ref)) return undefined;
+    return chainsWithGenes(ctx.resultPool, ref, GENES)?.filter((letter) => letter !== "");
+  })
 
-    const spec = ctx.resultPool.getPColumnSpecByRef(ref);
-    // Only single-cell IG can be single-chain (heavy-only VHH): bulk has no chain axis,
-    // and single-cell TCR is always paired — nothing to filter in those cases.
-    if (spec?.axesSpec[1]?.name !== "pl7.app/vdj/scClonotypeKey") return undefined;
-    if (spec.axesSpec[1]?.domain?.["pl7.app/vdj/receptor"] !== "IG") return undefined;
-
-    // Ask for just the V-gene-hit column per chain
-    const vGeneCols = ctx.resultPool.getAnchoredPColumns(
+  // Whether the selected dataset (and chain, when paired) has a nucleotide CDR3 to measure.
+  // Imported (bare) sets carry the amino-acid CDR3 only. undefined while nothing is selected or
+  // the pool is resolving — meaning "don't restrict".
+  .output("hasNucleotideCdr3", (ctx) => {
+    const ref = ctx.data.datasetRef;
+    if (ref === undefined) return undefined;
+    const cdr3Cols = ctx.resultPool.getAnchoredPColumns(
       { main: ref },
       [
         {
           axes: [{ anchor: "main", idx: 1 }],
-          name: "pl7.app/vdj/geneHit",
-          domain: { "pl7.app/vdj/reference": "VGene" },
+          name: "pl7.app/vdj/sequence",
+          domain: { "pl7.app/vdj/feature": "CDR3", "pl7.app/alphabet": "nucleotide" },
         },
       ],
       { ignoreMissingDomains: true },
     );
-    if (vGeneCols === undefined) return undefined; // pool still resolving
-
-    const chains = new Set<string>();
-    for (const col of vGeneCols) {
-      const domain = col.spec.domain;
-      if (domain?.["pl7.app/vdj/scClonotypeChain/index"] !== "primary") continue;
-      const letter = domain?.["pl7.app/vdj/scClonotypeChain"];
-      if (letter) chains.add(letter);
-    }
-    return [...chains].sort();
+    if (cdr3Cols === undefined) return undefined;
+    if (!isPairedDataset(ctx.resultPool, ref)) return cdr3Cols.length > 0;
+    return cdr3Cols.some(
+      (col) =>
+        col.spec.domain?.["pl7.app/vdj/scClonotypeChain"] === ctx.data.scChain &&
+        col.spec.domain?.["pl7.app/vdj/scClonotypeChain/index"] === "primary",
+    );
   })
 
   .outputWithStatus("pf", (ctx) => {
