@@ -8,7 +8,7 @@ import { computed, watch, watchEffect } from "vue";
 import BubblePlot from "./pages/BubblePlot.vue";
 import CDR3StackedBarPlot from "./pages/CDR3StackedBarPlot.vue";
 import VStackedBarPlot from "./pages/VStackedBarPlot.vue";
-import { useIsSingleCell, useScChainOptions } from "./utils";
+import { useScChainOptions } from "./utils";
 
 export const sdkPlugin = defineAppV3(platforma, (app) => {
   syncDefaultBlockLabel(app.model);
@@ -27,7 +27,7 @@ export const useApp = sdkPlugin.useApp;
 type AppModel = ReturnType<typeof useApp>["model"];
 
 function syncDefaultBlockLabel(model: AppModel) {
-  const isSingleCell = useIsSingleCell(() => model.outputs.datasetSpec);
+  const isSingleCell = computed(() => model.outputs.isSingleCell ?? false);
   const scChainOptions = useScChainOptions(
     () => model.outputs.datasetSpec,
     () => model.outputs.availableScChains,
@@ -57,6 +57,18 @@ function syncDefaultBlockLabel(model: AppModel) {
       chainLabel: chainLabel.value,
     });
   });
+
+  // Keep lengthType valid: a dataset without a nucleotide CDR3 (an imported bare set) can only
+  // be measured in amino acids, and the selector is disabled there so it cannot be fixed by hand.
+  watch(
+    () => model.outputs.hasNucleotideCdr3,
+    (hasNt) => {
+      if (hasNt === false && model.data.lengthType === "nucleotide") {
+        model.data.lengthType = "aminoacid";
+      }
+    },
+    { immediate: true },
+  );
 
   // Keep scChain valid: if the persisted chain isn't among the chains that actually
   // have columns, reset it to the first available one. Covers switching a block from a
