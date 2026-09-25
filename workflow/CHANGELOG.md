@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 4.4.0
+
+### Minor Changes
+
+- c7d1585: Accept imported (bare) antibody/TCR sets from Import V(D)J Data that carry a V gene column; detect paired sets from their chain columns; leave records with a blank V gene out of the V spectratype; disable the length-type selector and warn when the dataset has no nucleotide CDR3
+
 ## 4.3.0
 
 ### Minor Changes
