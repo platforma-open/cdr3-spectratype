@@ -1,6 +1,6 @@
 {
   "name": "@platforma-open/milaboratories.cdr3-spectratype",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "files": [
     "dist",
     "block-pack"
