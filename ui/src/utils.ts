@@ -47,7 +47,12 @@ export function useScChainOptions(
         ];
         break;
       default:
-        return [];
+        // No receptor on the axis: name the chains by letter rather than offering none, so a
+        // paired dataset still gets a selector and a saved chain that is absent gets corrected.
+        options = [
+          { label: "Chain A", value: "A" },
+          { label: "Chain B", value: "B" },
+        ];
     }
 
     // Only offer chains that actually have columns. While the presence list is
