@@ -44,7 +44,9 @@ export function isDatasetSpec(spec: PColumnSpec): boolean {
  * domain.
  *
  * Legacy MiXCR single-cell declares pairing on the axis NAME; an imported paired set declares it
- * only on the columns, so the axis alone cannot answer. Probing for such a column covers both.
+ * only on the columns, so the axis alone cannot answer. The probe reads the CDR3 sequence
+ * columns, the same ones the workflow reads pairing off, so the chain selector is shown exactly
+ * when the run will filter by chain.
  */
 export function isPairedDataset(resultPool: ResultPool, ref: PlRef): boolean {
   if (resultPool.getPColumnSpecByRef(ref)?.axesSpec[1]?.name === "pl7.app/vdj/scClonotypeKey") {
@@ -53,14 +55,20 @@ export function isPairedDataset(resultPool: ResultPool, ref: PlRef): boolean {
   // Scoped to the dataset's record axis. A selector without `axes` carries no anchor reference
   // at all, so it is matched against the whole result pool: a single-cell block anywhere in the
   // project would mark every bulk dataset as paired.
-  const perChain = resultPool.getAnchoredPColumns({ main: ref }, [
-    {
-      axes: [{ anchor: "main", idx: 1 }],
-      name: "pl7.app/vdj/sequence",
-      domain: { "pl7.app/vdj/scClonotypeChain/index": "primary" },
-    },
-  ]);
-  return (perChain?.length ?? 0) > 0;
+  const cols = resultPool.getAnchoredPColumns(
+    { main: ref },
+    [
+      {
+        axes: [{ anchor: "main", idx: 1 }],
+        name: "pl7.app/vdj/sequence",
+        domain: { "pl7.app/vdj/feature": "CDR3" },
+      },
+    ],
+    { ignoreMissingDomains: true },
+  );
+  return (cols ?? []).some(
+    (col) => col.spec.domain?.["pl7.app/vdj/scClonotypeChain"] !== undefined,
+  );
 }
 
 /**
