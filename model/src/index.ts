@@ -84,9 +84,15 @@ export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind }
     );
     if (cdr3Cols === undefined) return undefined;
     if (!isPairedDataset(ctx.resultPool, ref)) return cdr3Cols.length > 0;
+    // A saved chain the dataset does not offer is about to be reset by the UI. Judging it now
+    // would force amino acid for a chain that will not run, and nothing would restore the choice.
+    const chain = ctx.data.scChain;
+    if (chain === undefined || !chainsWithGenes(ctx.resultPool, ref, GENES)?.includes(chain)) {
+      return undefined;
+    }
     return cdr3Cols.some(
       (col) =>
-        col.spec.domain?.["pl7.app/vdj/scClonotypeChain"] === ctx.data.scChain &&
+        col.spec.domain?.["pl7.app/vdj/scClonotypeChain"] === chain &&
         col.spec.domain?.["pl7.app/vdj/scClonotypeChain/index"] === "primary",
     );
   })
