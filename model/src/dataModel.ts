@@ -32,6 +32,7 @@ export const initBlockData = (params?: BlockParams): BlockData => {
   const lengthType = params?.lengthType ?? "aminoacid";
   return {
     datasetRef: params?.datasetRef,
+    filterRef: params?.filterRef,
     lengthType,
     scChain: params?.scChain ?? "A",
     // The dataset's and the chain's human labels come from the result pool, which `init`

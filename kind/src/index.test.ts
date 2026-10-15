@@ -10,6 +10,7 @@ describe("the envelope", () => {
   it("accepts an empty object — a fresh block has nothing configured", () => {
     expect(parse({})).toEqual({
       datasetRef: undefined,
+      filterRef: undefined,
       lengthType: undefined,
       scChain: undefined,
       weightedFlag: undefined,
@@ -33,6 +34,7 @@ describe("the envelope", () => {
   it("round-trips a fully configured block", () => {
     const params = {
       datasetRef: DATASET_REF,
+      filterRef: { __isRef: true as const, blockId: "b2", name: "labels.igg" },
       lengthType: "nucleotide" as const,
       scChain: "B" as const,
       weightedFlag: false,
@@ -56,6 +58,12 @@ describe("datasetRef", () => {
     ["an array", []],
   ])("rejects %s", (_label, datasetRef) => {
     expect(() => parse({ datasetRef })).toThrow("'datasetRef' must be a reference");
+  });
+});
+
+describe("filterRef", () => {
+  it("rejects a bare string", () => {
+    expect(() => parse({ filterRef: "labels.igg" })).toThrow("'filterRef' must be a reference");
   });
 });
 

@@ -1,8 +1,8 @@
-import { isJsonEqual } from "@milaboratories/helpers";
 import {
   getDefaultBlockLabel,
   platforma,
 } from "@platforma-open/milaboratories.cdr3-spectratype.model";
+import { plRefsEqual } from "@platforma-sdk/model";
 import { defineAppV3 } from "@platforma-sdk/ui-vue";
 import { computed, watch, watchEffect } from "vue";
 import BubblePlot from "./pages/BubblePlot.vue";
@@ -33,11 +33,17 @@ function syncDefaultBlockLabel(model: AppModel) {
     () => model.outputs.availableScChains,
   );
 
+  // The subset's label when one is picked: it already carries the dataset as a prefix.
   const datasetLabel = computed(() => {
-    if (!model.data.datasetRef) return;
-    return model.outputs.datasetOptions?.find((option) =>
-      isJsonEqual(option.ref, model.data.datasetRef),
-    )?.label;
+    const { datasetRef, filterRef } = model.data;
+    if (!datasetRef) return;
+    const option = model.outputs.datasetOptions?.find((o) =>
+      plRefsEqual(o.primary.ref, datasetRef, true),
+    );
+    const filter = filterRef
+      ? option?.filters?.find((f) => plRefsEqual(f.ref, filterRef, true))
+      : undefined;
+    return (filter ?? option?.primary)?.label;
   });
 
   // Get chain label for single-cell datasets
