@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.test
 
+## 2.1.1
+
+### Patch Changes
+
+- 38e2de0: Release every package through npm trusted publishing (OIDC) so each package's trusted publisher is used before it expires.
+
 ## 2.1.0
 
 ### Minor Changes
