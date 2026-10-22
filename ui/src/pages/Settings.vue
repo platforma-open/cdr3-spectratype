@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { PlAlert, PlBtnGroup, PlDropdownRef, PlTextField } from "@platforma-sdk/ui-vue";
+import type { DatasetSelection } from "@platforma-sdk/model";
+import { createDatasetSelection, createPrimaryRef } from "@platforma-sdk/model";
+import { PlAlert, PlBtnGroup, PlDatasetSelector, PlTextField } from "@platforma-sdk/ui-vue";
 import { computed } from "vue";
 import { useApp } from "../app";
 import { lengthTypeOptions, useScChainOptions } from "../utils";
@@ -12,12 +14,24 @@ const scChainOptions = useScChainOptions(
   computed(() => app.model.outputs.availableScChains),
 );
 
+const datasetSelection = computed<DatasetSelection | undefined>({
+  get: () => {
+    const { datasetRef, filterRef } = app.model.data;
+    if (datasetRef === undefined) return undefined;
+    return createDatasetSelection(createPrimaryRef(datasetRef, filterRef));
+  },
+  set: (selection) => {
+    app.model.data.datasetRef = selection?.primary.column;
+    app.model.data.filterRef = selection?.primary.filter;
+  },
+});
+
 const noNucleotideCdr3 = computed(() => app.model.outputs.hasNucleotideCdr3 === false);
 </script>
 
 <template>
-  <PlDropdownRef
-    v-model="app.model.data.datasetRef"
+  <PlDatasetSelector
+    v-model="datasetSelection"
     :options="app.model.outputs.datasetOptions"
     label="Select dataset"
     required

@@ -13,6 +13,8 @@ export type * from "@platforma-open/milaboratories.cdr3-spectratype.kind";
  */
 export type BlockData = {
   datasetRef?: PlRef;
+  /** Subset column picked with the dataset in PlDatasetSelector (e.g. a Repertoire Labeling label). */
+  filterRef?: PlRef;
   lengthType: LengthType;
   scChain: ScChain;
   defaultBlockLabel: string;
@@ -30,6 +32,7 @@ export type BlockData = {
  */
 export type BlockArgs = {
   datasetRef: PlRef;
+  inputFilter?: string;
   lengthType: LengthType;
   scClonotypeChain: ScChain;
   customBlockLabel: string;

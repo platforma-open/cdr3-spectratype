@@ -17,6 +17,7 @@ const roundTrip = (data: BlockData): BlockData =>
 
 const CONFIGURED: BlockData = {
   datasetRef: { __isRef: true, blockId: "b1", name: "pf/dataset" },
+  filterRef: { __isRef: true, blockId: "b2", name: "labels.igg" },
   lengthType: "nucleotide",
   scChain: "B",
   defaultBlockLabel: "Donor 3 - Nucleotide - Light",
@@ -32,6 +33,7 @@ describe("export -> apply", () => {
     const seeded = roundTrip(CONFIGURED);
 
     expect(seeded.datasetRef).toEqual(CONFIGURED.datasetRef);
+    expect(seeded.filterRef).toEqual(CONFIGURED.filterRef);
     expect(seeded.lengthType).toBe(CONFIGURED.lengthType);
     expect(seeded.scChain).toBe(CONFIGURED.scChain);
     expect(seeded.weightedFlag).toBe(CONFIGURED.weightedFlag);

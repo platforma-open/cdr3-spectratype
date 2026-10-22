@@ -5,6 +5,7 @@ ll := import("@platforma-sdk/workflow-tengo:ll")
 pframes := import("@platforma-sdk/workflow-tengo:pframes")
 pSpec := import("@platforma-sdk/workflow-tengo:pframes.spec")
 pt := import("@platforma-sdk/workflow-tengo:pt")
+json := import("json")
 
 filter := func(arr, predicate) {
 	filtered := []
@@ -181,6 +182,11 @@ wf.prepare(func(args) {
 		name: "pl7.app/label"
 	}, "sampleLabel")
 
+	// Optional subset column picked alongside the dataset (PlDatasetSelector)
+	if !is_undefined(args.inputFilter) {
+		bundleBuilder.addRef(json.decode(args.inputFilter))
+	}
+
 	return {
 		columns: bundleBuilder.build()
 	}
@@ -243,15 +249,36 @@ wf.body(func(args) {
 		labelTsvFile = lt.build()
 	}
 
-	// Build TSV input for pt workflow
-	table := pframes.tsvFileBuilder()
+	// Optional subset: only its clonotypes enter the spectratypes. The trace roots in the filter
+	// so downstream labels name it.
+	filterColumn := undefined
+	traceSpec := datasetSpec
+	if !is_undefined(args.inputFilter) {
+		f := columns.getColumn(json.decode(args.inputFilter))
+		filterColumn = { spec: f.spec, data: f.data }
+		traceSpec = f.spec
+	}
+
+	// Build TSV input for pt workflow. Without a subset, the plain builder (unfiltered runs
+	// unchanged). With one, the abundance is the filtered primary and the rest fill its rows.
+	table := is_undefined(filterColumn) ? pframes.tsvFileBuilder() : pframes.tableBuilder("tsv").setColumnJoin("left")
 	table.mem("16GiB") // @TODO: set based on the size of the input
 	table.cpu(4)
 
 	table.setAxisHeader("pl7.app/sampleId", "Sample")
-	table.add(cdr3Col, { header: "CDR3" })
-	table.add(abundanceCol, { header: "weight" })
-	table.add(vGeneCol, { header: "vGene" })
+	if is_undefined(filterColumn) {
+		table.add(cdr3Col, { header: "CDR3" })
+		table.add(abundanceCol, { header: "weight" })
+		table.add(vGeneCol, { header: "vGene" })
+	} else {
+		table.addPrimary("main", {
+			__isPrimaryRef: "v1",
+			column: abundanceCol,
+			filter: filterColumn
+		}, { header: "weight" })
+		table.addColumn(cdr3Col, { header: "CDR3" })
+		table.addColumn(vGeneCol, { header: "vGene" })
+	}
 	tsv := table.build()
 
 	// Use pt workflow instead of custom software
@@ -399,7 +426,7 @@ wf.body(func(args) {
 	// Use block label if provided, otherwise fall back to default
 	traceLabel := args.customBlockLabel || "CDR3 Spectratype"
 
-	trace := pSpec.makeTrace(datasetSpec,
+	trace := pSpec.makeTrace(traceSpec,
 		{
 			type: "milaboratories.cdr3-spectratype",
 			importance: 50,
@@ -413,11 +440,14 @@ wf.body(func(args) {
 	pfOutput := pframes.pFrameBuilder()
 	for id, v in vSpectratypeResult {
 		injectedSpec := trace.inject(v.spec)
+		// A run on a subset says so: its outputs cover only the subset's clonotypes.
+		if !is_undefined(filterColumn) { injectedSpec.domain["pl7.app/inputSubset"] = args.inputFilter }
 		pfExport.add(id + "-v", injectedSpec, v.data)
 		pfOutput.add(id + "-v", v.spec, v.data)
 	}
 	for id, v in cdr3SpectratypeResult {
 		injectedSpec := trace.inject(v.spec)
+		if !is_undefined(filterColumn) { injectedSpec.domain["pl7.app/inputSubset"] = args.inputFilter }
 		pfExport.add(id + "-cdr3", injectedSpec, v.data)
 		pfOutput.add(id + "-cdr3", v.spec, v.data)
 	}

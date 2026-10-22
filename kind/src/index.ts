@@ -11,8 +11,9 @@ export type ScChain = "A" | "B";
 
 /**
  * This block's init-params contract — everything a user sets by hand: the dataset
- * to profile, the length alphabet, the chain to read on single-cell data, whether
- * the plots weight each clonotype by its abundance, and the subtitle they type.
+ * to profile and an optional subset of it, the length alphabet, the chain to read on
+ * single-cell data, whether the plots weight each clonotype by its abundance, and the
+ * subtitle they type.
  *
  * `defaultBlockLabel` is absent: a `watchEffect` in `ui/src/app.ts` builds it from
  * the dataset's option label and the chain's option label, neither of which exists
@@ -30,6 +31,8 @@ export type ScChain = "A" | "B";
  */
 export type BlockParams = {
   datasetRef?: PlRef;
+  /** A subset column (`pl7.app/isSubset`) the dataset is restricted to before the analysis. */
+  filterRef?: PlRef;
   lengthType?: LengthType;
   scChain?: ScChain;
   weightedFlag?: boolean;
@@ -54,11 +57,16 @@ const SC_CHAINS: readonly string[] = ["A", "B"];
 function parseInitializationParams(value: unknown): BlockParams {
   assertParamsObject(value);
 
-  const { datasetRef, lengthType, scChain, weightedFlag, customBlockLabel } = value;
+  const { datasetRef, filterRef, lengthType, scChain, weightedFlag, customBlockLabel } = value;
 
   if (datasetRef !== undefined && !isPlRef(datasetRef)) {
     throw new Error(
       "'datasetRef' must be a reference to an upstream dataset, written as { block, name }.",
+    );
+  }
+  if (filterRef !== undefined && !isPlRef(filterRef)) {
+    throw new Error(
+      "'filterRef' must be a reference to an upstream subset column, written as { block, name }.",
     );
   }
   if (lengthType !== undefined && !LENGTH_TYPES.includes(lengthType as string)) {
@@ -80,6 +88,7 @@ function parseInitializationParams(value: unknown): BlockParams {
 
   return {
     datasetRef,
+    filterRef,
     lengthType: lengthType as LengthType | undefined,
     scChain: scChain as ScChain | undefined,
     weightedFlag,

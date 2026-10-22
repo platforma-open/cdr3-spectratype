@@ -1,8 +1,19 @@
-import type { InferOutputsType, PColumnIdAndSpec } from "@platforma-sdk/model";
-import { BlockModelV3, isPColumnSpec } from "@platforma-sdk/model";
+import type { DatasetOption, InferOutputsType, PColumnIdAndSpec } from "@platforma-sdk/model";
+import {
+  BlockModelV3,
+  buildDatasetOptions,
+  createGlobalPObjectId,
+  isPColumnSpec,
+} from "@platforma-sdk/model";
 import { kind } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 import { blockDataModel } from "./dataModel";
-import { chainsWithGenes, isBareSetAxis, isDatasetSpec, isPairedDataset } from "./dataset";
+import {
+  chainsWithGenes,
+  isBareSetAxis,
+  isDatasetSpec,
+  isPairedDataset,
+  isReceptorRecordAxis,
+} from "./dataset";
 import { deriveTemplateParams } from "./templateParams";
 import type { BlockArgs } from "./types";
 
@@ -19,6 +30,9 @@ export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind }
     if (data.datasetRef === undefined) throw new Error("Dataset is required");
     return {
       datasetRef: data.datasetRef,
+      ...(data.filterRef !== undefined && {
+        inputFilter: createGlobalPObjectId(data.filterRef.blockId, data.filterRef.name),
+      }),
       lengthType: data.lengthType,
       scClonotypeChain: data.scChain,
       customBlockLabel: data.customBlockLabel,
@@ -29,16 +43,23 @@ export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind }
 
   // MiXCR datasets always carry a V gene column; an imported (bare) set carries one only when
   // the file mapped it, so one without a V gene on some chain is not offered at all.
-  .output("datasetOptions", (ctx) =>
-    ctx.resultPool
-      .getOptions((spec) => isPColumnSpec(spec) && isDatasetSpec(spec), {
-        label: { includeNativeLabel: false },
-      })
-      .filter(
-        (option) =>
-          !isBareSetAxis(ctx.resultPool.getPColumnSpecByRef(option.ref)?.axesSpec[1]) ||
-          (chainsWithGenes(ctx.resultPool, option.ref, GENES)?.length ?? 0) > 0,
-      ),
+  // Each dataset carries its subset columns (e.g. Repertoire Labeling labels) as filters.
+  .output("datasetOptions", (ctx): DatasetOption[] =>
+    (
+      buildDatasetOptions(ctx, {
+        primary: (spec) => isPColumnSpec(spec) && isDatasetSpec(spec),
+        // Only subsets keyed by the clonotype axis alone: the spectratype counts clonotypes.
+        filter: (spec) =>
+          isPColumnSpec(spec) &&
+          spec.axesSpec.length === 1 &&
+          isReceptorRecordAxis(spec.axesSpec[0]),
+        requireEnrichments: false,
+      }) ?? []
+    ).filter(
+      ({ primary }) =>
+        !isBareSetAxis(ctx.resultPool.getPColumnSpecByRef(primary.ref)?.axesSpec[1]) ||
+        (chainsWithGenes(ctx.resultPool, primary.ref, GENES)?.length ?? 0) > 0,
+    ),
   )
 
   .output("datasetSpec", (ctx) => {
