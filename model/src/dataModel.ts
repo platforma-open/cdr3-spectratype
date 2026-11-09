@@ -1,8 +1,7 @@
 import type { GraphMakerState } from "@milaboratories/graph-maker";
 import { DataModelBuilder } from "@platforma-sdk/model";
 import { kind } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
-import { getDefaultBlockLabel } from "./label";
-import type { BlockData, BlockParams, LegacyBlockArgs, LegacyUiState } from "./types";
+import type { BlockData, BlockDataV1, BlockParams, LegacyBlockArgs, LegacyUiState } from "./types";
 
 const defaultBubble = (): GraphMakerState => ({
   title: "CDR3 V Spectratype",
@@ -35,11 +34,10 @@ export const initBlockData = (params?: BlockParams): BlockData => {
     filterRef: params?.filterRef,
     lengthType,
     scChain: params?.scChain ?? "A",
-    // The dataset's and the chain's human labels come from the result pool, which `init`
-    // cannot reach, so only the part computable from the params is filled in here. The
-    // watchEffect in ui/src/app.ts replaces it with the full label once the pool resolves.
-    defaultBlockLabel: getDefaultBlockLabel({ lengthType, isSingleCell: false }),
     customBlockLabel: params?.customBlockLabel ?? "",
+    // The dataset's label comes from the result pool, which `init` cannot reach; the subtitle
+    // shows the settings part until the user picks a dataset.
+    subtitleLabel: "",
     weightedFlag: params?.weightedFlag ?? true,
     bubblePlotState: defaultBubble(),
     vStackedBarPlotState: defaultVStacked(),
@@ -48,7 +46,7 @@ export const initBlockData = (params?: BlockParams): BlockData => {
 };
 
 export const blockDataModel = new DataModelBuilder({ kind })
-  .from<BlockData>("v1")
+  .from<BlockDataV1>("v1")
   // V1 split analysis params + block labels across `args`; the three plot states
   // and `weightedFlag` lived under `uiState`. Fold both into unified `data`.
   .upgradeLegacy<LegacyBlockArgs, LegacyUiState>(({ args, uiState }) => {
@@ -57,8 +55,7 @@ export const blockDataModel = new DataModelBuilder({ kind })
       datasetRef: args?.datasetRef,
       lengthType,
       scChain: args?.scChain ?? "A",
-      defaultBlockLabel:
-        args?.defaultBlockLabel ?? getDefaultBlockLabel({ lengthType, isSingleCell: false }),
+      defaultBlockLabel: args?.defaultBlockLabel ?? "",
       customBlockLabel: args?.customBlockLabel ?? "",
       weightedFlag: uiState?.weightedFlag ?? true,
       bubblePlotState: uiState?.bubblePlotState ?? defaultBubble(),
@@ -66,4 +63,10 @@ export const blockDataModel = new DataModelBuilder({ kind })
       cdr3StackedBarPlotState: uiState?.cdr3StackedBarPlotState ?? defaultCdr3(),
     };
   })
+  // The old label mixed the dataset's result-pool label with settings; the settings part is
+  // recomputed from data, and the dataset part returns on the next dataset pick.
+  .migrate<BlockData>("v2", ({ defaultBlockLabel: _, ...rest }) => ({
+    ...rest,
+    subtitleLabel: "",
+  }))
   .init(({ params }) => initBlockData(params));

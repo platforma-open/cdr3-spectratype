@@ -1,17 +1,13 @@
-import {
-  getDefaultBlockLabel,
-  platforma,
-} from "@platforma-open/milaboratories.cdr3-spectratype.model";
-import { plRefsEqual } from "@platforma-sdk/model";
+import { platforma } from "@platforma-open/milaboratories.cdr3-spectratype.model";
 import { defineAppV3 } from "@platforma-sdk/ui-vue";
-import { computed, watch, watchEffect } from "vue";
+import { computed, watch } from "vue";
 import BubblePlot from "./pages/BubblePlot.vue";
 import CDR3StackedBarPlot from "./pages/CDR3StackedBarPlot.vue";
 import VStackedBarPlot from "./pages/VStackedBarPlot.vue";
 import { useScChainOptions } from "./utils";
 
 export const sdkPlugin = defineAppV3(platforma, (app) => {
-  syncDefaultBlockLabel(app.model);
+  keepSettingsValid(app.model);
 
   return {
     routes: {
@@ -26,43 +22,12 @@ export const useApp = sdkPlugin.useApp;
 
 type AppModel = ReturnType<typeof useApp>["model"];
 
-function syncDefaultBlockLabel(model: AppModel) {
+function keepSettingsValid(model: AppModel) {
   const isSingleCell = computed(() => model.outputs.isSingleCell ?? false);
   const scChainOptions = useScChainOptions(
     () => model.outputs.datasetSpec,
     () => model.outputs.availableScChains,
   );
-
-  // The subset's label when one is picked: it already carries the dataset as a prefix.
-  const datasetLabel = computed(() => {
-    const { datasetRef, filterRef } = model.data;
-    if (!datasetRef) return;
-    const option = model.outputs.datasetOptions?.find((o) =>
-      plRefsEqual(o.primary.ref, datasetRef, true),
-    );
-    const filter = filterRef
-      ? option?.filters?.find((f) => plRefsEqual(f.ref, filterRef, true))
-      : undefined;
-    return (filter ?? option?.primary)?.label;
-  });
-
-  // Get chain label for single-cell datasets
-  const chainLabel = computed(() => {
-    if (!isSingleCell.value) return;
-    return scChainOptions.value?.find((o) => o.value === model.data.scChain)?.label;
-  });
-
-  watchEffect(() => {
-    // Get length type label
-    const lengthType = model.data.lengthType;
-
-    model.data.defaultBlockLabel = getDefaultBlockLabel({
-      datasetLabel: datasetLabel.value,
-      lengthType,
-      isSingleCell: isSingleCell.value,
-      chainLabel: chainLabel.value,
-    });
-  });
 
   // Keep lengthType valid: a dataset without a nucleotide CDR3 (an imported bare set) can only
   // be measured in amino acids, and the selector is disabled there so it cannot be fixed by hand.
