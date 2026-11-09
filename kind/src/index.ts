@@ -15,9 +15,9 @@ export type ScChain = "A" | "B";
  * single-cell data, whether the plots weight each clonotype by its abundance, and the
  * subtitle they type.
  *
- * `defaultBlockLabel` is absent: a `watchEffect` in `ui/src/app.ts` builds it from
- * the dataset's option label and the chain's option label, neither of which exists
- * before the result pool has resolved the chosen dataset.
+ * `subtitleLabel` is absent: it is the dataset's option label, written by the
+ * dataset picker, which does not exist before the result pool has resolved the
+ * chosen dataset.
  *
  * The three plot states are absent too. They are graph-maker's own view state —
  * axis picks, zoom, which tab is open — written by the plotting component rather

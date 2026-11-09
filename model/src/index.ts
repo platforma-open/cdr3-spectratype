@@ -14,12 +14,13 @@ import {
   isPairedDataset,
   isReceptorRecordAxis,
 } from "./dataset";
+import { defaultSubtitle } from "./label";
 import { deriveTemplateParams } from "./templateParams";
 import type { BlockArgs } from "./types";
 
 export { blockDataModel, initBlockData } from "./dataModel";
 export { deriveTemplateParams } from "./templateParams";
-export { getDefaultBlockLabel } from "./label";
+export { defaultSubtitle } from "./label";
 export * from "./types";
 
 /** The V spectratype groups by V gene, so a chain without one cannot be run. */
@@ -164,7 +165,7 @@ export const platforma = BlockModelV3.create({ dataModel: blockDataModel, kind }
 
   .title(() => "CDR3 Spectratype")
 
-  .subtitle((ctx) => ctx.data.customBlockLabel || ctx.data.defaultBlockLabel)
+  .subtitle((ctx) => ctx.data.customBlockLabel || defaultSubtitle(ctx.data))
 
   .sections(() => [
     { type: "link" as const, href: "/" as const, label: "Bubble Plot" },

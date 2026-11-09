@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { kind } from "@platforma-open/milaboratories.cdr3-spectratype.kind";
 import { initBlockData } from "./dataModel";
+import { defaultSubtitle } from "./label";
 import { deriveTemplateParams } from "./templateParams";
 import type { BlockData } from "./types";
 
@@ -20,8 +21,8 @@ const CONFIGURED: BlockData = {
   filterRef: { __isRef: true, blockId: "b2", name: "labels.igg" },
   lengthType: "nucleotide",
   scChain: "B",
-  defaultBlockLabel: "Donor 3 - Nucleotide - Light",
   customBlockLabel: "run 7",
+  subtitleLabel: "Donor 3",
   weightedFlag: false,
   bubblePlotState: { title: "moved", template: "bubble", currentTab: null },
   vStackedBarPlotState: { title: "moved", template: "stackedBar", currentTab: "settings" },
@@ -73,15 +74,13 @@ describe("export -> apply", () => {
     expect(fresh.customBlockLabel).toBe("");
   });
 
-  it("leaves the derived label to the panel, and agrees with it on the part it can compute", () => {
-    // The watchEffect in ui/src/app.ts builds the same string from the dataset's and the chain's
-    // option labels. `init` cannot reach either -- both come from the result pool -- so only the
-    // length alphabet is filled in here, and it must already match or the label would flicker
-    // the moment the block is opened.
+  it("leaves the dataset's label out, so the subtitle shows the settings part until a pick", () => {
+    // The dataset's label comes from the source project's result pool; the seeded block gets it
+    // back only when the user picks a dataset.
     const seeded = roundTrip(CONFIGURED);
 
-    expect(seeded.defaultBlockLabel).not.toBe(CONFIGURED.defaultBlockLabel);
-    expect(seeded.defaultBlockLabel).toBe("Nucleotide");
+    expect(seeded.subtitleLabel).toBe("");
+    expect(defaultSubtitle(seeded)).toBe("Nucleotide");
   });
 
   it("resets the plot view state rather than carrying it", () => {
