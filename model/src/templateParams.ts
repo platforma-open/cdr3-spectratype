@@ -7,7 +7,7 @@ import type { BlockData } from "./types";
  *
  * `subtitleLabel` does not travel: it is the dataset's label as the source project's result pool
  * shows it, a display cache rather than a setting. The seeded block shows the settings part of
- * the subtitle until the user picks a dataset.
+ * the subtitle until the block is opened.
  *
  * The three graph-maker states do not travel either: they are the plotting component's own view
  * state, and a template pinning them would be pinning a camera position rather than an analysis.
