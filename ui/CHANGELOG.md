@@ -1,5 +1,13 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 4.7.2
+
+### Patch Changes
+
+- 57e7f94: Keep the block subtitle in sync with the chosen dataset's current label
+- Updated dependencies [57e7f94]
+  - @platforma-open/milaboratories.cdr3-spectratype.model@4.7.2
+
 ## 4.7.1
 
 ### Patch Changes
