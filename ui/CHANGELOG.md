@@ -1,5 +1,19 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 4.7.1
+
+### Patch Changes
+
+- 1679efc: Compute the block subtitle without opening the block
+
+  The subtitle shows the dataset's label, written when the user picks a dataset, followed
+  by the length type, computed from the block's settings. It no longer depends on opening
+  the block, and opening the block no longer rewrites it. Existing blocks show the length
+  type alone until the dataset is picked again.
+
+- Updated dependencies [1679efc]
+  - @platforma-open/milaboratories.cdr3-spectratype.model@4.7.1
+
 ## 4.7.0
 
 ### Minor Changes

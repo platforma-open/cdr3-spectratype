@@ -1,5 +1,7 @@
 # @platforma-open/milaboratories.cdr3-spectratype.workflow
 
+## 4.7.1
+
 ## 4.7.0
 
 ### Minor Changes
