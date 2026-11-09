@@ -19,8 +19,8 @@ export type BlockData = {
   scChain: ScChain;
   customBlockLabel: string;
   /**
-   * The dataset's (or subset's) label as the result pool shows it. Written by the dataset
-   * picker on a user pick; feeds the subtitle only, never the workflow.
+   * The dataset's (or subset's) label as the result pool shows it. Kept in sync by the UI
+   * while the block is open; feeds the subtitle only, never the workflow.
    */
   subtitleLabel?: string;
   weightedFlag: boolean;

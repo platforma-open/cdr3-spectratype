@@ -36,7 +36,7 @@ export const initBlockData = (params?: BlockParams): BlockData => {
     scChain: params?.scChain ?? "A",
     customBlockLabel: params?.customBlockLabel ?? "",
     // The dataset's label comes from the result pool, which `init` cannot reach; the subtitle
-    // shows the settings part until the user picks a dataset.
+    // shows the settings part until the block is opened.
     subtitleLabel: "",
     weightedFlag: params?.weightedFlag ?? true,
     bubblePlotState: defaultBubble(),
@@ -64,7 +64,7 @@ export const blockDataModel = new DataModelBuilder({ kind })
     };
   })
   // The old label mixed the dataset's result-pool label with settings; the settings part is
-  // recomputed from data, and the dataset part returns on the next dataset pick.
+  // recomputed from data, and the dataset part returns when the block is opened.
   .migrate<BlockData>("v2", ({ defaultBlockLabel: _, ...rest }) => ({
     ...rest,
     subtitleLabel: "",

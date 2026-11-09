@@ -1,4 +1,5 @@
 import { platforma } from "@platforma-open/milaboratories.cdr3-spectratype.model";
+import { plRefsEqual } from "@platforma-sdk/model";
 import { defineAppV3 } from "@platforma-sdk/ui-vue";
 import { computed, watch } from "vue";
 import BubblePlot from "./pages/BubblePlot.vue";
@@ -7,6 +8,7 @@ import VStackedBarPlot from "./pages/VStackedBarPlot.vue";
 import { useScChainOptions } from "./utils";
 
 export const sdkPlugin = defineAppV3(platforma, (app) => {
+  syncSubtitleLabel(app.model);
   keepSettingsValid(app.model);
 
   return {
@@ -21,6 +23,29 @@ export const sdkPlugin = defineAppV3(platforma, (app) => {
 export const useApp = sdkPlugin.useApp;
 
 type AppModel = ReturnType<typeof useApp>["model"];
+
+function syncSubtitleLabel(model: AppModel) {
+  // The subset's label when one is picked: it already carries the dataset as a prefix.
+  const subtitleLabel = computed<string | undefined>(() => {
+    const { datasetRef, filterRef } = model.data;
+    if (!datasetRef) return "";
+    const option = model.outputs.datasetOptions?.find((o) =>
+      plRefsEqual(o.primary.ref, datasetRef, true),
+    );
+    if (!filterRef) return option?.primary.label;
+    return option?.filters?.find((f) => plRefsEqual(f.ref, filterRef, true))?.label;
+  });
+
+  watch(
+    subtitleLabel,
+    (label) => {
+      if (label !== undefined && label !== model.data.subtitleLabel) {
+        model.data.subtitleLabel = label;
+      }
+    },
+    { immediate: true },
+  );
+}
 
 function keepSettingsValid(model: AppModel) {
   const isSingleCell = computed(() => model.outputs.isSingleCell ?? false);

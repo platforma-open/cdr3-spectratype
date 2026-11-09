@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DatasetSelection } from "@platforma-sdk/model";
 import { defaultSubtitle } from "@platforma-open/milaboratories.cdr3-spectratype.model";
-import { createDatasetSelection, createPrimaryRef, plRefsEqual } from "@platforma-sdk/model";
+import { createDatasetSelection, createPrimaryRef } from "@platforma-sdk/model";
 import { PlAlert, PlBtnGroup, PlDatasetSelector, PlTextField } from "@platforma-sdk/ui-vue";
 import { computed } from "vue";
 import { useApp } from "../app";
@@ -24,22 +24,8 @@ const datasetSelection = computed<DatasetSelection | undefined>({
   set: (selection) => {
     app.model.data.datasetRef = selection?.primary.column;
     app.model.data.filterRef = selection?.primary.filter;
-    app.model.data.subtitleLabel = pickedDatasetLabel();
   },
 });
-
-// The subset's label when one is picked: it already carries the dataset as a prefix.
-function pickedDatasetLabel(): string {
-  const { datasetRef, filterRef } = app.model.data;
-  if (!datasetRef) return "";
-  const option = app.model.outputs.datasetOptions?.find((o) =>
-    plRefsEqual(o.primary.ref, datasetRef, true),
-  );
-  const filter = filterRef
-    ? option?.filters?.find((f) => plRefsEqual(f.ref, filterRef, true))
-    : undefined;
-  return (filter ?? option?.primary)?.label ?? "";
-}
 
 const noNucleotideCdr3 = computed(() => app.model.outputs.hasNucleotideCdr3 === false);
 </script>
