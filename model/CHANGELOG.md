@@ -1,5 +1,12 @@
 # @platforma-open/milaboratories.cdr3-spectratype.model
 
+## 4.7.3
+
+### Patch Changes
+
+- Updated dependencies [1b0e63b]
+  - @platforma-open/milaboratories.cdr3-spectratype.kind@1.1.1
+
 ## 4.7.2
 
 ### Patch Changes

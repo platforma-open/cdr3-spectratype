@@ -1,5 +1,11 @@
 # @platforma-open/milaboratories.cdr3-spectratype.ui
 
+## 4.7.3
+
+### Patch Changes
+
+- @platforma-open/milaboratories.cdr3-spectratype.model@4.7.3
+
 ## 4.7.2
 
 ### Patch Changes
